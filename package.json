@@ -1,0 +1,52 @@
+{
+  "name": "withyou",
+  "productName": "携手",
+  "version": "1.2.0",
+  "description": "与你一起记录生活和工作 — 轻量桌面记事工具：便签卡片 + 看板视图 + 桌面常驻",
+  "main": "main.js",
+  "license": "MIT",
+  "scripts": {
+    "start": "electron .",
+    "test": "node test/store.test.js && node test/project-resources.test.js && node test/resource-navigation.test.js && node test/pet.test.js && node test/task-pet.test.js && node test/pet-reminder.test.js && node test/pet-dock.test.js && node test/pet-gesture.test.js && node test/i18n.test.js && node test/ai.test.js && node test/quick.test.js && node test/ai-access.test.js",
+    "dist": "electron-builder --win"
+  },
+  "build": {
+    "appId": "com.withyou.app",
+    "productName": "携手",
+    "artifactName": "WithYou-Setup-${version}.${ext}",
+    "directories": {
+      "output": "dist"
+    },
+    "files": [
+      "main.js",
+      "preload.js",
+      "src/**/*",
+      "assets/**/*",
+      "package.json"
+    ],
+    "win": {
+      "icon": "build/icon.ico",
+      "target": [
+        {
+          "target": "nsis",
+          "arch": [
+            "x64"
+          ]
+        }
+      ]
+    },
+    "nsis": {
+      "oneClick": false,
+      "perMachine": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "shortcutName": "携手",
+      "installerIcon": "build/icon.ico",
+      "uninstallerIcon": "build/icon.ico"
+    }
+  },
+  "devDependencies": {
+    "electron": "^33.0.0",
+    "electron-builder": "^26.18.0"
+  }
+}

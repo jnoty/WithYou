@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta http-equiv="Content-Security-Policy"
+        content="default-src 'self'; style-src 'self'; script-src 'self'" />
+  <title data-i18n="快速新建">快速新建</title>
+  <link rel="stylesheet" href="quick.css" />
+</head>
+<body>
+  <div class="wrap">
+    <div class="hint" data-i18n="⚡ 快速记一件事 — 回车识别，再确认创建，Esc 关闭">⚡ 快速记一件事 — 回车识别，再确认创建，Esc 关闭</div>
+    <input id="title-input" type="text" maxlength="2000" placeholder="要做什么？" autocomplete="off"  data-i18n-placeholder="要做什么？">
+    <p class="hint" data-i18n="默认使用 AI 识别任务和时间，内容将发送给默认模型服务。"></p>
+    <p id="quick-status" role="status" aria-live="polite"></p>
+    <div class="footer">
+      <span data-i18n="Ctrl + Alt + N 随时唤起">Ctrl + Alt + N 随时唤起</span>
+      <button id="btn-manual" data-i18n="普通创建">普通创建</button><button id="btn-create" data-i18n="AI 整理">AI 整理</button>
+    </div>
+  </div>
+  <script src="../i18n.js"></script>
+  <script src="i18n-runtime.js" data-entry="quick.js"></script>
+</body>
+</html>

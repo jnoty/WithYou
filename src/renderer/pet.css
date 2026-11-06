@@ -1,0 +1,257 @@
+@import url('theme.css');
+
+/* 桌宠样式：图片形象（assets/pet-cat.png）+ 心情 / 动画状态 */
+/* 设计基准 160×180，由 --pet-scale 整体缩放 */
+
+html, body {
+  margin: 0;
+  padding: 0;
+  background: transparent;
+  overflow: hidden;
+  user-select: none;
+  -webkit-user-select: none;
+  cursor: default;
+}
+
+.pet-stage {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 160px;
+  height: 180px;
+  transform: translate(-50%, -50%) scale(calc(var(--pet-scale, 1) * var(--reminder-scale, 1)));
+  transform-origin: center;
+  font-family: "Microsoft YaHei", "PingFang SC", sans-serif;
+}
+.pet-stage[data-motion="center"] { transition: transform 0.2s ease-out; }
+.pet-stage[data-motion="return"] { transition: transform 0.65s ease-in-out; }
+
+/* ---------- 气泡 ---------- */
+.pet-bubble {
+  position: absolute;
+  top: 2px;
+  left: 50%;
+  transform: translateX(-50%);
+  max-width: 148px;
+  width: 148px;
+  box-sizing: border-box;
+  padding: 7px 10px;
+  background: var(--panel);
+  border: 1.5px solid var(--brand);
+  border-radius: 14px 14px 3px 14px;
+  box-shadow: 0 3px 10px color-mix(in oklch, var(--brand-deep) 12%, transparent);
+  font-size: 12px;
+  line-height: 1.45;
+  color: var(--brand-deep);
+  text-align: center;
+  word-break: break-word;
+  z-index: 20;
+}
+.pet-bubble:not([hidden]) {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+  overflow: hidden;
+}
+.pet-bubble::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  bottom: -6px;
+  transform: translateX(-50%);
+  border-left: 6px solid transparent;
+  border-right: 6px solid transparent;
+  border-top: 6px solid #ffffff;
+}
+
+/* ---------- HUD（等级 + 心情） ---------- */
+.pet-hud {
+  position: absolute;
+  top: 4px;
+  left: 6px;
+  display: flex;
+  gap: 4px;
+  z-index: 15;
+}
+.pet-hud span {
+  padding: 2px 7px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.85);
+  border: 1px solid #e5e7eb;
+  font-size: 10px;
+  color: #6b7280;
+}
+.pet-hud .hud-mood {
+  color: #ef4444;
+}
+
+/* ---------- 宠物形象 ---------- */
+.pet-wrap {
+  position: absolute;
+  left: 50%;
+  bottom: 4px;
+  transform: translateX(-50%);
+  width: 132px;
+  height: 126px;
+  cursor: grab;
+}
+.pet-wrap:active {
+  cursor: grabbing;
+}
+
+.pet {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  animation: bob 2.4s ease-in-out infinite;
+}
+
+.pet-img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  -webkit-user-drag: none;
+}
+
+.pet-zzz {
+  display: none;
+  position: absolute;
+  top: -6px;
+  right: 2px;
+  font-size: 14px;
+  font-weight: 700;
+  color: #8ab6ff;
+  z-index: 5;
+}
+.pet-zzz em {
+  font-style: normal;
+  display: inline-block;
+  animation: zzzFloat 2.2s ease-out infinite;
+}
+.pet-zzz em:nth-child(2) { animation-delay: 0.7s; }
+
+/* ---------- 心情状态（覆盖在 .pet 上） ---------- */
+.mood-happy {
+  animation-duration: 1.6s;
+}
+
+.mood-sad {
+  animation: none;
+  transform: rotate(-2deg);
+  filter: saturate(0.72) brightness(0.95);
+}
+
+.mood-hungry {
+  animation-name: wobble;
+  animation-duration: 2.8s;
+  filter: saturate(0.88);
+}
+
+.mood-sleeping {
+  animation-name: breathe;
+  animation-duration: 3.4s;
+  filter: brightness(0.93) saturate(0.85);
+}
+.mood-sleeping .pet-zzz {
+  display: block;
+}
+
+/* ---------- 瞬时动画 ---------- */
+.anim-pat { animation: squash 0.45s ease; }
+.anim-celebrate { animation: jump 0.7s ease; }
+.anim-attention { animation: wiggle 0.5s ease 3; }
+.anim-eating { animation: chew 0.3s ease-in-out 5; }
+.anim-running { animation: none; transform: none; filter: none; }
+.anim-running .pet-zzz { display: none; }
+.anim-leap { animation: none; transform: none; filter: none; }
+.anim-leap .pet-zzz { display: none; }
+.anim-hide, .anim-peek, .anim-emerge { animation: none; transform: none; filter: none; }
+.anim-hide .pet-zzz, .anim-peek .pet-zzz, .anim-emerge .pet-zzz { display: none; }
+.pet-stage[data-dock="hide"] .pet-hud,
+.pet-stage[data-dock="peek"] .pet-hud,
+.pet-stage[data-dock="emerge"] .pet-hud,
+.pet-stage[data-dock="hide"] .pet-bubble,
+.pet-stage[data-dock="peek"] .pet-bubble,
+.pet-stage[data-dock="emerge"] .pet-bubble { visibility: hidden; }
+.running-left .pet-img { transform: scaleX(-1); }
+
+/* 浮动特效（爱心 / 星星） */
+.pet-fx {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 6;
+}
+.pet-fx span {
+  position: absolute;
+  font-size: 15px;
+  animation: floatUp 1s ease-out forwards;
+}
+.fx-heart { color: #ff6b81; }
+.fx-star { color: #ffcf4d; }
+
+/* 喂食小蛋糕 */
+.pet-treat {
+  position: absolute;
+  bottom: 92px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 22px;
+  z-index: 10;
+  animation: treatBob 1.6s ease;
+}
+
+/* ---------- 关键帧 ---------- */
+@keyframes bob {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-5px); }
+}
+@keyframes breathe {
+  0%, 100% { transform: scaleY(1) rotate(-2deg); }
+  50% { transform: scaleY(1.02) rotate(-2deg); }
+}
+@keyframes wobble {
+  0%, 100% { transform: rotate(-2deg) translateY(0); }
+  50% { transform: rotate(2deg) translateY(-3px); }
+}
+@keyframes squash {
+  0% { transform: scale(1, 1); }
+  35% { transform: scale(1.12, 0.86); }
+  65% { transform: scale(0.94, 1.08); }
+  100% { transform: scale(1, 1); }
+}
+@keyframes jump {
+  0% { transform: translateY(0) rotate(0); }
+  30% { transform: translateY(-16px) rotate(-7deg); }
+  55% { transform: translateY(-10px) rotate(7deg); }
+  80% { transform: translateY(-4px) rotate(-3deg); }
+  100% { transform: translateY(0) rotate(0); }
+}
+@keyframes wiggle {
+  0%, 100% { transform: rotate(0); }
+  25% { transform: rotate(-6deg); }
+  75% { transform: rotate(6deg); }
+}
+@keyframes chew {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(3px); }
+}
+@keyframes floatUp {
+  0% { transform: translateY(0) scale(0.8); opacity: 1; }
+  100% { transform: translateY(-34px) scale(1.15); opacity: 0; }
+}
+@keyframes zzzFloat {
+  0% { transform: translateY(0); opacity: 0; }
+  30% { opacity: 1; }
+  100% { transform: translateY(-18px); opacity: 0; }
+}
+@keyframes treatBob {
+  0% { transform: translateX(-50%) translateY(6px); opacity: 0; }
+  20% { opacity: 1; }
+  80% { opacity: 1; }
+  100% { transform: translateX(-50%) translateY(-12px); opacity: 0; }
+}
+
+/* Native drag uses pointer capture, including touch/pen cancellation. */
+#pet-wrap { touch-action: none; }

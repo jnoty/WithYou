@@ -1,0 +1,15 @@
+'use strict';
+const assert = require('node:assert/strict');
+const { canAccessAI } = require('../src/ai-access');
+const window = () => ({ isDestroyed: () => false, webContents: { mainFrame: {} } });
+const main = window(), quick = window(), other = window();
+const event = win => ({ sender: win.webContents, senderFrame: win.webContents.mainFrame });
+for (const name of ['config', 'analyze', 'preview', 'cancel']) assert.equal(canAccessAI(event(quick), name, main, quick), true);
+for (const name of ['commit', 'take-preview', 'save-config', 'delete-provider', 'set-default', 'sources', 'source', 'list-models']) assert.equal(canAccessAI(event(quick), name, main, quick), false);
+assert.equal(canAccessAI(event(main), 'set-default', main, quick), true);
+assert.equal(canAccessAI(event(other), 'analyze', main, quick), false);
+assert.equal(canAccessAI({ sender: quick.webContents, senderFrame: {} }, 'analyze', main, quick), false);
+assert.equal(canAccessAI(event(quick), 'analyze', null, quick), true);
+quick.isDestroyed = () => true;
+assert.equal(canAccessAI(event(quick), 'analyze', main, quick), false);
+console.log('AI access: quick capture allowed; unrelated windows, subframes and configuration mutations denied.');

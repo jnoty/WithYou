@@ -1,0 +1,79 @@
+/* Two independently generated, 8-frame character animation clips. */
+.pet-sprite {
+  display: none;
+  position: absolute;
+  left: 50%;
+  bottom: 0;
+  width: calc(126px * 384 / 340);
+  height: calc(126px * 384 / 340);
+  transform: translateX(-50%);
+  background-repeat: no-repeat;
+  background-size: 800% 100%;
+  pointer-events: none;
+}
+.anim-running .pet-img, .anim-leap .pet-img { visibility: hidden; }
+.anim-running .pet-sprite {
+  display: block;
+  background-image: url('../../assets/pet-run-strip.png');
+  animation: cat-frames 0.48s steps(1, end) infinite;
+}
+.anim-leap .pet-sprite {
+  display: block;
+  background-image: url('../../assets/pet-jump-strip.png');
+  animation: cat-frames 0.65s steps(1, end) both;
+}
+.running-left .pet-sprite { transform: translateX(-50%) scaleX(-1); }
+.anim-hide .pet-img, .anim-peek .pet-img, .anim-emerge .pet-img { visibility: hidden; }
+.anim-hide .pet-sprite {
+  display: block; background-image: url('../../assets/pet-hide-strip.png');
+  animation: cat-hide-frames 0.64s steps(1, end) both;
+}
+.anim-peek .pet-sprite {
+  display: block; background-image: url('../../assets/pet-peek-strip.png');
+  animation: cat-peek-frames 1.92s steps(1, end) infinite;
+}
+.anim-emerge .pet-sprite {
+  display: block; background-image: url('../../assets/pet-emerge-strip.png');
+  animation: cat-emerge-frames 0.8s steps(1, end) both;
+}
+/* Separate names restart each clip's timeline, even after a long peeking idle. */
+@keyframes cat-hide-frames {
+  0% { background-position: 0% 0; }
+  12.5% { background-position: 14.285714% 0; }
+  25% { background-position: 28.571429% 0; }
+  37.5% { background-position: 42.857143% 0; }
+  50% { background-position: 57.142857% 0; }
+  62.5% { background-position: 71.428571% 0; }
+  75% { background-position: 85.714286% 0; }
+  87.5%, 100% { background-position: 100% 0; }
+}
+@keyframes cat-peek-frames {
+  0% { background-position: 0% 0; }
+  12.5% { background-position: 14.285714% 0; }
+  25% { background-position: 28.571429% 0; }
+  37.5% { background-position: 42.857143% 0; }
+  50% { background-position: 57.142857% 0; }
+  62.5% { background-position: 71.428571% 0; }
+  75% { background-position: 85.714286% 0; }
+  87.5%, 100% { background-position: 100% 0; }
+}
+@keyframes cat-emerge-frames {
+  0% { background-position: 0% 0; }
+  12.5% { background-position: 14.285714% 0; }
+  25% { background-position: 28.571429% 0; }
+  37.5% { background-position: 42.857143% 0; }
+  50% { background-position: 57.142857% 0; }
+  62.5% { background-position: 71.428571% 0; }
+  75% { background-position: 85.714286% 0; }
+  87.5%, 100% { background-position: 100% 0; }
+}
+@keyframes cat-frames {
+  0% { background-position: 0% 0; }
+  12.5% { background-position: 14.285714% 0; }
+  25% { background-position: 28.571429% 0; }
+  37.5% { background-position: 42.857143% 0; }
+  50% { background-position: 57.142857% 0; }
+  62.5% { background-position: 71.428571% 0; }
+  75% { background-position: 85.714286% 0; }
+  87.5%, 100% { background-position: 100% 0; }
+}

@@ -1,0 +1,735 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>携手 WithYou 使用说明（图文版）</title>
+<style>
+  :root {
+    --brand: #d9970a;
+    --brand-dark: #b57c07;
+    --brand-soft: #fff7e6;
+    --ink: #1f2430;
+    --ink-2: #4b5262;
+    --ink-3: #8a91a0;
+    --line: #e6e8ee;
+    --bg: #f6f7fa;
+    --card: #ffffff;
+    --danger: #d64545;
+    --ok: #2f9e63;
+    --code-bg: #f1f2f6;
+    --radius: 14px;
+    --shadow: 0 6px 24px rgba(23, 30, 50, .08);
+  }
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; scroll-padding-top: 24px; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: "Segoe UI", "Microsoft YaHei", "PingFang SC", "Noto Sans SC", sans-serif;
+    font-size: 15.5px;
+    line-height: 1.85;
+  }
+
+  /* ---------- 布局 ---------- */
+  .layout { display: flex; max-width: 1280px; margin: 0 auto; gap: 32px; padding: 0 20px; }
+  nav.toc {
+    width: 232px; flex: none; position: sticky; top: 0; align-self: flex-start;
+    max-height: 100vh; overflow-y: auto; padding: 28px 4px 32px 0;
+  }
+  nav.toc .toc-title {
+    font-size: 12px; letter-spacing: .12em; color: var(--ink-3);
+    text-transform: uppercase; margin: 0 0 10px 12px;
+  }
+  nav.toc a {
+    display: block; padding: 6px 12px; border-radius: 8px;
+    color: var(--ink-2); text-decoration: none; font-size: 13.5px; line-height: 1.5;
+    border-left: 2px solid transparent;
+  }
+  nav.toc a:hover { background: var(--brand-soft); color: var(--brand-dark); }
+  nav.toc a .num { color: var(--ink-3); margin-right: 8px; font-variant-numeric: tabular-nums; }
+  main { flex: 1; min-width: 0; padding: 28px 0 72px; }
+
+  /* ---------- 头部 ---------- */
+  .hero {
+    background: linear-gradient(135deg, #fff9ec 0%, #ffffff 55%);
+    border: 1px solid var(--line); border-radius: 20px;
+    padding: 36px 40px; margin-bottom: 34px; box-shadow: var(--shadow);
+  }
+  .hero .brand { display: flex; align-items: center; gap: 18px; }
+  .hero img.logo { width: 64px; height: 64px; border-radius: 16px; box-shadow: 0 4px 14px rgba(217, 151, 10, .35); }
+  .hero h1 { margin: 0; font-size: 30px; letter-spacing: .01em; }
+  .hero .sub { margin: 2px 0 0; color: var(--ink-2); font-size: 16px; }
+  .hero .meta { margin-top: 18px; display: flex; flex-wrap: wrap; gap: 8px; }
+  .pill {
+    display: inline-flex; align-items: center; gap: 6px;
+    background: #fff; border: 1px solid var(--line); border-radius: 999px;
+    padding: 4px 13px; font-size: 12.5px; color: var(--ink-2);
+  }
+  .pill b { color: var(--ink); font-weight: 600; }
+
+  /* ---------- 章节 ---------- */
+  section { margin: 0 0 46px; }
+  h2 {
+    font-size: 23px; margin: 0 0 6px; padding-top: 6px;
+    display: flex; align-items: baseline; gap: 10px;
+  }
+  h2 .idx {
+    font-size: 14px; color: var(--brand-dark); background: var(--brand-soft);
+    border-radius: 8px; padding: 2px 10px; font-weight: 600;
+  }
+  h3 { font-size: 17px; margin: 26px 0 8px; color: var(--ink); }
+  p.lead { color: var(--ink-2); margin: 6px 0 16px; font-size: 15.5px; }
+  a { color: var(--brand-dark); }
+  code, .kbd {
+    background: var(--code-bg); border-radius: 6px; padding: 1px 7px;
+    font-family: Consolas, "Cascadia Mono", monospace; font-size: .9em;
+  }
+  .kbd {
+    display: inline-block; border: 1px solid var(--line); border-bottom-width: 2px;
+    background: #fff; border-radius: 6px; padding: 0 8px; color: var(--ink);
+    font-size: 12.5px; line-height: 24px; white-space: nowrap;
+  }
+
+  /* ---------- 截图 ---------- */
+  figure.shot { margin: 20px 0 26px; }
+  figure.shot .frame {
+    background: var(--card); border: 1px solid var(--line);
+    border-radius: var(--radius); overflow: hidden; box-shadow: var(--shadow);
+  }
+  figure.shot img { display: block; width: 100%; height: auto; }
+  figure.shot img.narrow { width: auto; max-width: 100%; margin: 18px auto; display: block; }
+  figure.shot figcaption {
+    text-align: center; color: var(--ink-3); font-size: 13px; margin-top: 10px;
+  }
+  figure.shot figcaption b { color: var(--ink-2); font-weight: 600; }
+
+  /* ---------- 列表 / 步骤 / 表格 ---------- */
+  ul.plain { padding-left: 22px; margin: 10px 0; }
+  ul.plain li { margin: 5px 0; }
+  ol.steps { counter-reset: step; list-style: none; padding: 0; margin: 14px 0 20px; }
+  ol.steps li {
+    counter-increment: step; position: relative;
+    padding: 2px 0 14px 46px; margin: 0;
+  }
+  ol.steps li::before {
+    content: counter(step); position: absolute; left: 0; top: 2px;
+    width: 30px; height: 30px; border-radius: 50%;
+    background: var(--brand); color: #fff; font-size: 14px; font-weight: 600;
+    display: flex; align-items: center; justify-content: center;
+  }
+  ol.steps li::after {
+    content: ""; position: absolute; left: 14.5px; top: 36px; bottom: 2px;
+    width: 1.5px; background: var(--line);
+  }
+  ol.steps li:last-child::after { display: none; }
+
+  table { width: 100%; border-collapse: collapse; margin: 14px 0 22px; background: var(--card); border-radius: 12px; overflow: hidden; }
+  th, td { text-align: left; padding: 10px 14px; border-bottom: 1px solid var(--line); vertical-align: top; }
+  th { background: #fafbfc; font-size: 13px; color: var(--ink-2); letter-spacing: .02em; white-space: nowrap; }
+  tr:last-child td { border-bottom: none; }
+  td:first-child { white-space: nowrap; }
+
+  /* ---------- 提示框 ---------- */
+  .callout {
+    display: flex; gap: 12px; border-radius: 12px; padding: 13px 16px;
+    margin: 16px 0; font-size: 14px; line-height: 1.8;
+    border: 1px solid var(--line); background: var(--card);
+  }
+  .callout .ico { flex: none; font-size: 17px; line-height: 1.6; }
+  .callout.tip { background: var(--brand-soft); border-color: #f2dfae; }
+  .callout.note { background: #eef5ff; border-color: #cfe0f8; }
+  .callout.warn { background: #fff1f1; border-color: #f3cfcf; }
+
+  /* ---------- FAQ ---------- */
+  details.faq {
+    background: var(--card); border: 1px solid var(--line); border-radius: 12px;
+    padding: 0 18px; margin: 10px 0;
+  }
+  details.faq summary {
+    cursor: pointer; font-weight: 600; padding: 13px 0; list-style: none;
+    display: flex; justify-content: space-between; align-items: center; gap: 12px;
+  }
+  details.faq summary::after { content: "＋"; color: var(--ink-3); font-weight: 400; }
+  details.faq[open] summary::after { content: "－"; }
+  details.faq .a { padding: 0 0 14px; color: var(--ink-2); }
+
+  footer {
+    border-top: 1px solid var(--line); margin-top: 40px; padding: 22px 2px;
+    color: var(--ink-3); font-size: 13px; text-align: center;
+  }
+
+  /* ---------- 响应式 / 打印 ---------- */
+  @media (max-width: 1024px) {
+    nav.toc { display: none; }
+    .hero { padding: 26px 22px; }
+  }
+  @media print {
+    body { background: #fff; font-size: 12px; }
+    nav.toc { display: none; }
+    .layout { display: block; }
+    .hero, figure.shot .frame, table, .callout, details.faq { box-shadow: none; }
+    figure.shot { break-inside: avoid; }
+    details.faq .a { display: block; }
+  }
+</style>
+</head>
+<body>
+<div class="layout">
+
+  <!-- ================= 目录 ================= -->
+  <nav class="toc" aria-label="目录">
+    <p class="toc-title">目录</p>
+    <a href="#intro"><span class="num">01</span>软件简介</a>
+    <a href="#overview"><span class="num">02</span>界面总览</a>
+    <a href="#quick-add"><span class="num">03</span>快速新建任务</a>
+    <a href="#full-add"><span class="num">04</span>完整添加与重复任务</a>
+    <a href="#edit"><span class="num">05</span>编辑任务与子任务</a>
+    <a href="#done-delete"><span class="num">06</span>完成、删除与撤销</a>
+    <a href="#board"><span class="num">07</span>看板视图</a>
+    <a href="#calendar"><span class="num">08</span>日历视图</a>
+    <a href="#search"><span class="num">09</span>搜索与筛选</a>
+    <a href="#remind"><span class="num">10</span>时间与提醒</a>
+    <a href="#quick-window"><span class="num">11</span>速记小窗</a>
+    <a href="#desktop"><span class="num">12</span>桌面与窗口设置</a>
+    <a href="#pet"><span class="num">13</span>桌面宠物</a>
+    <a href="#data"><span class="num">14</span>数据管理</a>
+    <a href="#keys"><span class="num">15</span>快捷键速查</a>
+    <a href="#faq"><span class="num">16</span>常见问题</a>
+    <a href="#features"><span class="num">17</span>功能清单</a>
+    <a href="#ai-tasks"><span class="num">18</span>AI 整理与确认创建</a>
+    <a href="#ai-models"><span class="num">19</span>供应商与模型配置</a>
+    <a href="#project-resources"><span class="num">20</span>项目资料与版本升级</a>
+  </nav>
+
+  <!-- ================= 正文 ================= -->
+  <main>
+    <header class="hero">
+      <div class="brand">
+        <img class="logo" src="images/app-icon.png" alt="携手 WithYou 图标" />
+        <div>
+          <h1>携手 WithYou 使用说明</h1>
+          <p class="sub">轻量级桌面任务看板 —— 便签卡片 · 看板视图 · 日历排期 · 桌面常驻</p>
+        </div>
+      </div>
+      <div class="meta">
+        <span class="pill">版本 <b>v1.2.0</b></span>
+        <span class="pill">适用平台 <b>Windows 10 / 11</b></span>
+        <span class="pill">文档日期 <b>2026-11-05</b></span>
+        <span class="pill">数据存储 <b>本地 JSON；AI 整理需连接模型服务</b></span>
+      </div>
+    </header>
+
+    <!-- ============ 01 软件简介 ============ -->
+    <section id="intro">
+      <h2><span class="idx">01</span>软件简介</h2>
+      <p class="lead">
+        携手 WithYou 是一款类似「小黄条」的轻量桌面任务工具。核心体验是：<b>3 秒内记下一件事，一屏之内看清所有事。</b>
+        它常驻桌面（可最小化到系统托盘），把任务以「便签卡片」的形式按状态铺在看板上，
+        同时提供日历排期、提醒通知和一只会陪你工作的桌面宠物。
+      </p>
+      <ul class="plain">
+        <li><b>够快</b>：用全局速记输入标题、回车即建；也可用全局热键 <span class="kbd">Ctrl + Alt + N</span> 随时速记。</li>
+        <li><b>够清楚</b>：统一任务列表，通过「全部 / 待完成 / 已完成 / 已取消」标签筛选，颜色、截止时间、逾期、子任务进度一目了然。</li>
+        <li><b>不丢数据</b>：每次修改即时保存到本地（原子写入），删除默认进入 5 秒「可撤销」流程。</li>
+        <li><b>轻量无负担</b>：普通任务管理在本机运行，导出的 JSON 可直接备份迁移；仅使用 AI 整理时，将本次输入发送到你配置的模型服务。</li>
+      </ul>
+    </section>
+
+    <!-- ============ 02 界面总览 ============ -->
+    <section id="overview">
+      <h2><span class="idx">02</span>界面总览</h2>
+      <p class="lead">顶部可切换任务列表、日历计划和项目资料；主体为统一任务列表，通过状态标签筛选。</p>
+
+      <figure class="shot">
+        <div class="frame"><img src="images/01-overview.png" alt="携手 WithYou 主界面（看板视图）" /></div>
+        <figcaption><b>图 1</b>：主界面 —— 看板视图（示例数据）</figcaption>
+      </figure>
+
+      <table>
+        <tr><th>区域</th><th>说明</th></tr>
+        <tr><td>快速新建输入框</td><td>输入任务标题并回车，立即创建任务（见 <a href="#quick-add">03</a>）</td></tr>
+        <tr><td>「新任务」</td><td>默认 AI 输入；切换手动填写可设置任务内容、起止时间、紧急程度、重复规则（见 <a href="#full-add">04</a>）</td></tr>
+        <tr><td>看板 / 日历</td><td>一键切换看板视图与日历视图（见 <a href="#board">07</a>、<a href="#calendar">08</a>）</td></tr>
+        <tr><td>搜索框</td><td>按标题、备注、子任务内容实时过滤（见 <a href="#search">09</a>）</td></tr>
+        <tr><td>⚙ 设置</td><td>分类设置：通用与外观、AI 与模型、优先级、桌宠、数据备份（见 <a href="#desktop">12</a>）</td></tr>
+        <tr><td>筛选栏</td><td>按截止时间（全部 / 今日 / 本周 / 逾期）与颜色（紧急度）筛选</td></tr>
+        <tr><td>统一任务列表</td><td>全部 / 待完成 / 已完成 / 已取消；同一列表按状态筛选</td></tr>
+      </table>
+
+      <div class="callout tip">
+        <span class="ico">💡</span>
+        <div>图 1 中的红色卡片是<b>逾期任务</b>：逾期任务会变红并自动置顶到列表前部，提醒你优先处理。</div>
+      </div>
+    </section>
+
+    <!-- ============ 03 快速新建 ============ -->
+    <section id="quick-add">
+      <h2><span class="idx">03</span>快速新建任务</h2>
+      <p class="lead">最快的记事方式：只写标题，回车即建。适合「先把脑子里的事丢下来」。</p>
+      <ol class="steps">
+        <li>按 <span class="kbd">Ctrl + Alt + N</span> 唤起速记小窗，输入标题并按回车即可创建。</li>
+        <li>也可以点击主窗口「新任务 → 手动填写」，只填任务名后点击「创建」。</li>
+        <li>在「全部」或「待完成」标签中查看新任务；需要批量拆解一段话时，使用 <a href="#ai-tasks">AI 整理</a>。</li>
+      </ol>
+
+      <figure class="shot">
+        <div class="frame"><img src="images/02-quick-add.png" alt="手动新建任务，仅填写任务名" /></div>
+        <figcaption><b>图 2</b>：手动填写时仅任务名必填；全局速记见第 11 节</figcaption>
+      </figure>
+
+      <div class="callout note">
+        <span class="ico">📝</span>
+        <div>快速新建只填标题。需要补充备注、起止时间、颜色或重复规则时，使用「新任务」或事后双击卡片编辑。</div>
+      </div>
+    </section>
+
+    <!-- ============ 04 完整添加 ============ -->
+    <section id="full-add">
+      <h2><span class="idx">04</span>完整添加与重复任务</h2>
+      <p class="lead">点击「新任务」后默认进入 AI 输入。需要手动添加或创建重复任务时，先切换「手动填写」，再填写任务信息；AI 整理见 <a href="#ai-tasks">第 18 节</a>。</p>
+
+      <figure class="shot">
+        <div class="frame"><img src="images/03-add-task.png" alt="添加任务表单（含重复任务预览）" /></div>
+        <figcaption><b>图 3</b>：添加任务表单 —— 紧急程度、起止时间、重复规则与创建预览</figcaption>
+      </figure>
+
+      <table>
+        <tr><th>字段</th><th>说明</th></tr>
+        <tr><td>任务名</td><td><b>必填</b>，当前手动新建表单最多 100 字；AI 草稿标题最多 200 字</td></tr>
+        <tr><td>任务内容</td><td>当前手动新建表单最多 500 字；任务数据层备注上限 1000 字</td></tr>
+        <tr><td>开始时间 / 截止时间</td><td>精确到分钟；按所选提前量提醒。只有开始时间的会议/事件按开始时间计算</td></tr>
+        <tr><td>提醒时间</td><td>提前5、10或30分钟，默认5分钟；按截止时间计算，没有截止时间时按开始时间计算</td></tr>
+        <tr><td>紧急程度</td><td>默认 4 级（紧急 / 高 / 普通 / 低）+ 无色；旧版 9 级配置会保留。等级名称可在设置中自定义（见 <a href="#desktop">12</a>）</td></tr>
+        <tr><td>重复</td><td>不重复 / 每天 / 每周 / 每月；选择后需填写「重复截止日期」</td></tr>
+      </table>
+
+      <h3>重复任务的创建预览</h3>
+      <p>选择重复频率后，表单下方会实时显示「将创建 N 条重复任务（起始日 ~ 结束日）」，确认无误再点「创建」。
+      例如图 3 中的「产品迭代评审会」，每周 14:00–15:30、持续约八周，一次生成 8 条独立任务。</p>
+
+      <div class="callout tip">
+        <span class="ico">💡</span>
+        <div>
+          <b>重复任务 = 批量展开</b>：系统按规则在日期范围内生成同一系列的独立任务，
+          编辑时可选择仅此任务、此任务及后续或整个重复系列；单次最多生成 200 条。
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ 05 编辑 ============ -->
+    <section id="edit">
+      <h2><span class="idx">05</span>编辑任务与子任务</h2>
+      <p class="lead"><b>双击卡片</b>即可就地编辑，不需要跳转页面。</p>
+
+      <ol class="steps">
+        <li>双击任务卡片的标题区域，卡片展开为编辑表单。</li>
+        <li>可修改：标题、备注、开始 / 结束时间、颜色（紧急程度）。</li>
+        <li>按 <span class="kbd">Enter</span> 或点「保存」提交；按 <span class="kbd">Esc</span> 或点「取消」放弃修改；点「删除」移除任务。</li>
+      </ol>
+
+      <figure class="shot">
+        <div class="frame"><img src="images/04-edit-card.png" alt="双击卡片进入就地编辑" /></div>
+        <figcaption><b>图 4</b>：双击卡片进入就地编辑（含颜色与起止时间）</figcaption>
+      </figure>
+
+      <h3>子任务清单</h3>
+      <ul class="plain">
+        <li>在卡片的「添加子任务，回车确认」处输入内容，回车即添加，可连续添加多条。</li>
+        <li>点击子任务前的方框切换完成状态；点击行尾按钮删除单条子任务。</li>
+        <li>卡片底部显示进度徽标，如「子任务 2/4」。</li>
+        <li>上限：每个任务 50 条子任务，每条不超过 200 字。</li>
+      </ul>
+
+      <div class="callout warn">
+        <span class="ico">⚠️</span>
+        <div>校验规则：任务标题不能为空；开始时间不能晚于结束时间。违反规则时表单内会给出红色提示，不会丢失已填内容。</div>
+      </div>
+    </section>
+
+    <!-- ============ 06 完成 / 删除 / 撤销 ============ -->
+    <section id="done-delete">
+      <h2><span class="idx">06</span>完成、删除与撤销</h2>
+
+      <h3>标记完成</h3>
+      <p>点击卡片左上角的<b>勾选圈</b>切换完成状态。点击「已完成」标签查看已完成任务，再次点击勾选圈可恢复为待办。「待完成」包含待办和进行中的任务。</p>
+
+      <figure class="shot">
+        <div class="frame"><img src="images/05-done-expanded.png" alt="已完成标签筛选" /></div>
+        <figcaption><b>图 5</b>：点击「已完成」标签查看完成任务</figcaption>
+      </figure>
+
+      <h3>删除与撤销</h3>
+      <ol class="steps">
+        <li>点击卡片右上角的 🗑 按钮（或编辑表单中的「删除」）删除任务。</li>
+        <li>底部弹出 Toast「已删除「xxx」」，<b>5 秒内</b>点击「撤销」。</li>
+        <li>任务会恢复到删除前的位置；超过 5 秒则删除不可恢复。</li>
+      </ol>
+
+      <figure class="shot">
+        <div class="frame"><img src="images/06-undo-toast.png" alt="删除后的撤销提示" /></div>
+        <figcaption><b>图 6</b>：删除后 5 秒内可通过 Toast「撤销」恢复</figcaption>
+      </figure>
+
+      <div class="callout tip">
+        <span class="ico">🗂</span>
+        <div>误删不必慌张：所有变更都会即时落盘，但删除动作本身给了一层「反悔保护」，这是最常用的安全网。</div>
+      </div>
+    </section>
+
+    <!-- ============ 07 看板 ============ -->
+    <section id="board">
+      <h2><span class="idx">07</span>看板视图</h2>
+      <p class="lead">任务列表采用统一列表，使用「全部 / 待完成 / 已完成 / 已取消」四个标签筛选状态（见图 1）。顶部完成率按全部非取消任务计算，不随筛选变化。</p>
+
+      <h3>卡片信息</h3>
+      <ul class="plain">
+        <li><b>颜色条 / 优先级</b>：卡片左侧色条与徽标显示紧急程度（如「紧急」「高」「中」）。</li>
+        <li><b>开始 / 截止时间</b>：显示为「开始 10月30日 16:00」「截止 10月30日 18:00」。</li>
+        <li><b>逾期标识</b>：超过截止时间未完成的卡片整体变红并置顶，徽标显示「已逾期 · …」。</li>
+        <li><b>备注摘要</b>：两行截断展示；<b>子任务进度</b>：如「子任务 2/4」。</li>
+      </ul>
+
+      <h3>拖拽</h3>
+      <ul class="plain">
+        <li><b>同状态任务拖拽</b>：调整任务先后顺序。</li>
+        <li><b>拖到其他状态卡片上</b>：可切换任务状态；界面不再按状态分栏。</li>
+      </ul>
+
+      <div class="callout note">
+        <span class="ico">⚡</span>
+        <div>500 条任务以内，拖拽、搜索、筛选都是纯内存操作，界面不卡顿。</div>
+      </div>
+    </section>
+
+    <!-- ============ 08 日历 ============ -->
+    <section id="calendar">
+      <h2><span class="idx">08</span>日历视图</h2>
+      <p class="lead">点击工具栏「日历」切换到月视图，按日期查看与安排任务。</p>
+
+      <figure class="shot">
+        <div class="frame"><img src="images/07-calendar.png" alt="日历视图" /></div>
+        <figcaption><b>图 7</b>：日历视图 —— 月视图（周一起始）、当月任务分布与「未安排时间」列表</figcaption>
+      </figure>
+
+      <ul class="plain">
+        <li><b>月份导航</b>：<span class="kbd">‹</span> <span class="kbd">›</span> 切换月份，「今天」按钮快速回到当月今天。</li>
+        <li><b>每日格子</b>：显示当天截止的任务条目，含颜色条与时间；<b>逾期红显</b>、<b>完成划线</b>，超过 4 条可点「展开」。</li>
+        <li><b>拖拽排期</b>：把底部「未安排时间」的任务拖到某个日期，会先询问当天截止时间（默认 18:00）。拖动已排期任务时，按拖起日期到落点日期的偏移，整体平移开始和截止时间，保持任务时长；只设置一个时间的任务仅移动该时间，拖回原日期则不变更。</li>
+        <li><b>双击跳转</b>：双击日历中的任务条目，自动跳回看板并打开该任务的编辑表单。</li>
+      </ul>
+
+      <div class="callout tip">
+        <span class="ico">💡</span>
+        <div>「未安排时间」列表收纳既没有开始时间、也没有截止时间的未完成任务（如图 7 中的「预约下周体检」），拖到日历上即可完成排期。</div>
+      </div>
+    </section>
+
+    <!-- ============ 09 搜索与筛选 ============ -->
+    <section id="search">
+      <h2><span class="idx">09</span>搜索与筛选</h2>
+      <p class="lead">任务多了以后，用搜索与筛选快速定位。搜索和筛选可以叠加使用。</p>
+
+      <figure class="shot">
+        <div class="frame"><img src="images/08-search-filter.png" alt="搜索与筛选" /></div>
+        <figcaption><b>图 8</b>：搜索「会」并叠加「本周」时间筛选后的结果</figcaption>
+      </figure>
+
+      <table>
+        <tr><th>方式</th><th>说明</th></tr>
+        <tr><td>关键词搜索</td><td>实时过滤，匹配范围包含<b>标题、备注、子任务内容</b></td></tr>
+        <tr><td>时间筛选</td><td>全部 / 今日 / 本周 / 逾期（逾期 = 已过截止时间且未完成）</td></tr>
+        <tr><td>颜色筛选</td><td>点色块只看某个紧急度的任务，再点一次取消；「无」= 未标色</td></tr>
+      </table>
+    </section>
+
+    <!-- ============ 10 时间与提醒 ============ -->
+    <section id="remind">
+      <h2><span class="idx">10</span>时间与提醒</h2>
+      <p class="lead">给任务加上截止时间后，携手 WithYou 会替你盯着它。</p>
+      <ul class="plain">
+        <li><b>截止时间</b>：精确到分钟；另有「开始时间」。提醒可选提前5、10或30分钟；按截止时间计算，没有截止时间时按开始时间计算。</li>
+        <li><b>系统通知</b>：到达提醒时间后弹出 Windows 系统通知（后台约每 15 秒检查一次），点击通知可直接聚焦主窗口。可在「桌面宠物」设置中单独关闭系统通知、气泡或居中动画，或打开「安静模式」全部关闭。</li>
+        <li><b>提醒去重</b>：每条任务只提醒一次；修改截止时间后会重新获得一次提醒机会。</li>
+        <li><b>逾期高亮</b>：逾期卡片变红并置顶到列表前部，日历中同步红显。</li>
+      </ul>
+      <div class="callout note">
+        <span class="ico">🔔</span>
+        <div>如果收不到通知，请在 Windows「设置 → 系统 → 通知」中允许携手 WithYou 发送通知；勿开「专注助手 / 勿扰」模式。</div>
+      </div>
+    </section>
+
+    <!-- ============ 11 速记小窗 ============ -->
+    <section id="quick-window">
+      <h2><span class="idx">11</span>速记小窗</h2>
+      <p class="lead">在任何界面、任何时刻，按 <span class="kbd">Ctrl + Alt + N</span> 唤起速记小窗，先记下来再说。</p>
+
+      <figure class="shot">
+        <div class="frame"><img src="images/10-quick-window.png" alt="速记小窗" /></div>
+        <figcaption><b>图 9</b>：速记小窗 —— 输入标题，回车创建到「待办」</figcaption>
+      </figure>
+
+      <ol class="steps">
+        <li>按 <span class="kbd">Ctrl + Alt + N</span>（或托盘菜单「快速新建」）唤起小窗。</li>
+        <li>输入任务标题，按 <span class="kbd">Enter</span> 创建并清空，可连续速记。</li>
+        <li>按 <span class="kbd">Esc</span> 或点击其他地方（失焦）自动收起小窗。</li>
+      </ol>
+    </section>
+
+    <!-- ============ 12 桌面与窗口设置 ============ -->
+    <section id="desktop">
+      <h2><span class="idx">12</span>桌面与窗口设置</h2>
+      <p class="lead">点击工具栏 ⚙ 打开设置面板，把携手 WithYou 调成你喜欢的桌面形态。</p>
+      <p>设置左侧分为「通用与外观」「AI 与模型」「颜色与优先级」「桌面宠物」「数据与备份」。点击分类后在右侧操作，底部「关闭」关闭设置。通用选项即时保存；供应商配置需要点击「保存连接设置」。界面语言可切换简体中文或 English，不会翻译已有任务原文。</p>
+
+      <figure class="shot">
+        <div class="frame"><img src="images/09-settings.png" alt="设置面板" /></div>
+        <figcaption><b>图 10</b>：分类设置 —— 通用与外观</figcaption>
+      </figure>
+
+      <table>
+        <tr><th>设置项</th><th>说明</th></tr>
+        <tr><td>窗口置顶</td><td>主窗口始终浮在其他窗口之上</td></tr>
+        <tr><td>阅读字号</td><td>标准 / 较大 / 大；整个界面同步缩放</td></tr>
+        <tr><td>界面主题</td><td>跟随系统 / 浅色 / 深色</td></tr>
+        <tr><td>减少动态效果</td><td>关闭卡片、弹窗和桌宠的过渡动画</td></tr>
+        <tr><td>窗口透明度</td><td>50% ~ 100%，做「贴在桌面上的便签」效果</td></tr>
+        <tr><td>卡片圆角</td><td>关闭后卡片变为直角风格</td></tr>
+        <tr><td>开机自启</td><td>开机自动启动（默认关闭）</td></tr>
+        <tr><td>全局热键</td><td>显示当前速记热键：Ctrl + Alt + N</td></tr>
+        <tr><td>颜色与优先级</td><td>默认 4 级（紧急 / 高 / 普通 / 低）+ 无色；旧版 9 级配置原样保留。可用 ▲▼ 调整等级顺序（上高下低），并自定义名称；名称留空则不显示标签</td></tr>
+        <tr><td>桌面宠物</td><td>显示开关、大小 80%~150%、系统通知、气泡提醒、居中提醒动画、安静模式、贴边吸附（见 <a href="#pet">13</a>）</td></tr>
+        <tr><td>数据管理</td><td>完整备份 / 导出 JSON / 导入（见 <a href="#data">14</a>）</td></tr>
+      </table>
+
+      <h3>系统托盘</h3>
+      <ul class="plain">
+        <li>点击窗口关闭按钮 <b>不会退出</b>，而是最小化到系统托盘，继续在后台提供提醒。</li>
+        <li>双击托盘图标打开主窗口；右键托盘图标可：<b>快速新建 / 打开 / 开机自启 / 退出</b>。</li>
+        <li>只有托盘菜单中的「退出」才会真正结束程序。</li>
+      </ul>
+    </section>
+
+    <!-- ============ 13 桌面宠物 ============ -->
+    <section id="pet">
+      <h2><span class="idx">13</span>桌面宠物</h2>
+      <p class="lead">一只常驻桌面右下角的橘猫：既能陪工作，也会替你盯任务。</p>
+      <p>到期提醒分成三层：Windows 系统通知、桌宠气泡、居中提醒动画，可分别开关；打开「安静模式」会同时关闭这三层。动作预览和居中动画预览收在「预览与动作库」折叠区。</p>
+
+      <figure class="shot">
+        <img class="narrow" src="images/11-pet.png" alt="桌面宠物" />
+        <figcaption><b>图 11</b>：桌面宠物 —— 双击喂食后出现 🍰 与气泡反馈，左上角显示等级</figcaption>
+      </figure>
+
+      <h3>基础互动</h3>
+      <ul class="plain">
+        <li><b>单击</b>：抚摸，出现爱心特效并提升心情。</li>
+        <li><b>双击</b>：喂食，出现 🍰 与咀嚼动画；喂食有 4 小时冷却。</li>
+        <li><b>右键</b>：弹出菜单（打开主窗 / 速记 / 喂食 / 设置 / 隐藏桌宠）。</li>
+        <li><b>贴边躲藏</b>：按住移动位置（拖动小于 5 像素视为点击）。贴近屏幕边缘 12 像素内松手，猫会躲入对应侧的左下 / 右下桌角，只探出头；鼠标悬停猫头时跑出来坐下，移开约 1.2 秒后再次躲藏。关闭「贴边吸附」可取消此行为；重启后记住桌角位置。</li>
+      </ul>
+
+      <h3>任务联动与轻养成</h3>
+      <ul class="plain">
+        <li>新建 / 完成任务时气泡反馈（完成会触发庆祝动画）；任务到期、逾期时气泡提醒。</li>
+        <li>有逾期任务时猫的心情会变差；闲置太久心情也会慢慢下降。</li>
+        <li>心情 0~100、经验、等级（每级所需经验递增 100）；23:00–7:00 会睡觉，点击可唤醒 5 分钟。</li>
+      </ul>
+    </section>
+
+    <!-- ============ 14 数据管理 ============ -->
+    <section id="data">
+      <h2><span class="idx">14</span>数据管理</h2>
+      <p class="lead">所有数据都保存在本地，随时可备份、迁移。</p>
+
+      <h3>自动保存</h3>
+      <p>每一次新增、修改、删除都会<b>立即写入磁盘</b>（先写临时文件再原子重命名），
+      断电或崩溃也不会产生损坏的数据文件。</p>
+
+      <h3>完整备份 / 导出 / 导入</h3>
+      <ul class="plain">
+        <li><b>完整备份</b>：包含任务、项目资料和非敏感设置（语言、主题、字号、减少动效、优先级、桌宠开关等），不包含供应商密钥。导入前会显示任务和资料数量；重复资料会跳过，任务按合并追加处理。</li>
+        <li><b>导出 JSON</b>：只导出任务与 AI 来源记录，适合分享或轻量备份；不包含项目资料和设置。</li>
+        <li><b>导入 JSON</b>：采用<b>合并追加</b>策略 —— 保留现有任务，只把文件中的任务加进来；id 冲突会自动重新生成，不会覆盖你的数据。</li>
+        <li>导入兼容三种格式：本应用导出格式、裸任务数组、<b>旧版 MoliTodo v3 备份格式</b>（自动映射 content / metadata.note / metadata.steps / scheduledStartAt/EndAt）。</li>
+      </ul>
+
+      <h3>数据存储位置</h3>
+      <table>
+        <tr><th>内容</th><th>位置</th></tr>
+        <tr><td>任务数据</td><td><code>%APPDATA%\WithYou\tasks.json</code></td></tr>
+        <tr><td>设置</td><td><code>%APPDATA%\WithYou\settings.json</code></td></tr>
+        <tr><td>桌宠状态</td><td><code>%APPDATA%\WithYou\pet.json</code></td></tr>
+        <tr><td>供应商、模型及加密密钥</td><td><code>%APPDATA%\WithYou\ai-config.json</code></td></tr>
+        <tr><td>项目资料路径</td><td><code>%APPDATA%\WithYou\project-resources.json</code></td></tr>
+        <tr><td>AI 待确认草稿</td><td><code>%APPDATA%\WithYou\ai-drafts.json</code></td></tr>
+        <tr><td>导入前恢复副本</td><td><code>%APPDATA%\WithYou\before-import.json</code></td></tr>
+      </table>
+
+      <div class="callout tip">
+        <span class="ico">💾</span>
+        <div>备份建议：定期把 <code>tasks.json</code> 和 <code>project-resources.json</code> 复制到网盘或移动硬盘；换机迁移优先使用「完整备份」。</div>
+      </div>
+    </section>
+
+    <!-- ============ 15 快捷键 ============ -->
+    <section id="keys">
+      <h2><span class="idx">15</span>快捷键速查</h2>
+      <table>
+        <tr><th>快捷键 / 手势</th><th>作用</th></tr>
+        <tr><td><span class="kbd">Ctrl</span> + <span class="kbd">Alt</span> + <span class="kbd">N</span></td><td>唤起速记小窗（可在托盘菜单中触发同样功能）</td></tr>
+        <tr><td><span class="kbd">Enter</span></td><td>速记 / 快速新建输入框中：创建任务；编辑表单中：保存</td></tr>
+        <tr><td><span class="kbd">Esc</span></td><td>关闭速记小窗 / 弹窗 / 取消编辑</td></tr>
+        <tr><td>双击卡片</td><td>就地编辑任务</td></tr>
+        <tr><td>双击日历条目</td><td>跳回看板并打开编辑</td></tr>
+        <tr><td>拖拽卡片</td><td>同状态排序；拖到其他状态卡片上可切换状态</td></tr>
+        <tr><td>拖拽日历条目</td><td>整体平移任务时间段；未排期任务拖入日期时询问当天截止时间</td></tr>
+        <tr><td>单击 / 双击桌宠</td><td>抚摸 / 喂食</td></tr>
+      </table>
+    </section>
+
+    <!-- ============ 16 FAQ ============ -->
+    <section id="faq">
+      <h2><span class="idx">16</span>常见问题</h2>
+
+      <details class="faq" open>
+        <summary>关掉窗口后程序退出了吗？</summary>
+        <div class="a">没有。点关闭按钮只是最小化到系统托盘，提醒仍在后台工作。双击托盘图标可重新打开；
+        要彻底退出，请右键托盘图标选择「退出」。</div>
+      </details>
+
+      <details class="faq">
+        <summary>数据保存在哪里？换电脑怎么迁移？</summary>
+        <div class="a">数据保存在 <code>%APPDATA%\WithYou\</code> 下的三个 JSON 文件（见 <a href="#data">14</a>）。
+        换电脑时复制整个文件夹，或使用「导出 JSON / 导入 JSON」功能。</div>
+      </details>
+
+      <details class="faq">
+        <summary>误删任务还能找回吗？</summary>
+        <div class="a">删除后 5 秒内可点 Toast 上的「撤销」恢复原位。超过 5 秒则无法在应用内恢复，
+        只能从导出的备份中导入。</div>
+      </details>
+
+      <details class="faq">
+        <summary>没有收到到期提醒通知？</summary>
+        <div class="a">请检查 Windows「设置 → 系统 → 通知」中是否允许携手 WithYou 通知，以及是否开启了勿扰 / 专注模式；
+        同时确认任务的「截止时间」或「开始时间」已填写（提醒默认按截止时间，只有开始时间时按开始时间）。每条任务只提醒一次，改期后才会再次提醒。</div>
+      </details>
+
+      <details class="faq">
+        <summary>怎么把任务变成每天 / 每周重复？</summary>
+        <div class="a">在「新任务」表单中选择「重复」频率并填写「重复截止日期」，确认预览条数后创建；
+        生成的每条任务相互独立，可单独修改或删除（见 <a href="#full-add">04</a>）。</div>
+      </details>
+
+      <details class="faq">
+        <summary>桌面宠物不见了怎么办？</summary>
+        <div class="a">打开设置面板勾选「显示桌面宠物」，或右键系统托盘图标选择显示桌宠。
+        桌宠窗口不占任务栏位置，位置会自动记忆并钳回可见区域。</div>
+      </details>
+
+      <details class="faq">
+        <summary>导入会覆盖我现在的任务吗？</summary>
+        <div class="a">不会。导入是「合并追加」：现有任务全部保留，只新增文件中的任务；id 冲突会自动重新分配。</div>
+      </details>
+    </section>
+
+    <!-- ============ 17 功能清单 ============ -->
+    <section id="features">
+      <h2><span class="idx">17</span>功能清单</h2>
+      <p class="lead">对照需求文档（PRD）的实现一览。</p>
+      <table>
+        <tr><th>优先级</th><th>编号</th><th>功能</th><th>使用入口</th></tr>
+        <tr><td>P0</td><td>F-101</td><td>快速新建</td><td>全局速记输入标题后回车；新任务可切换手动填写</td></tr>
+        <tr><td>P0</td><td>F-102</td><td>编辑任务</td><td>双击卡片就地编辑</td></tr>
+        <tr><td>P0</td><td>F-103</td><td>完成切换</td><td>勾选圈；完成后可在「已完成」标签查看</td></tr>
+        <tr><td>P0</td><td>F-104</td><td>删除撤销</td><td>🗑 删除后 5 秒 Toast 撤销</td></tr>
+        <tr><td>P0</td><td>F-105</td><td>拖拽排序</td><td>同状态排序／拖到其他状态卡片切换状态</td></tr>
+        <tr><td>P0</td><td>F-106</td><td>完整添加</td><td>「新任务」表单</td></tr>
+        <tr><td>P0</td><td>F-107</td><td>重复任务</td><td>每天 / 每周 / 每月 + 截止日期</td></tr>
+        <tr><td>P0</td><td>F-108</td><td>子任务</td><td>卡片内清单：勾选 / 删除 / 连续添加</td></tr>
+        <tr><td>P0</td><td>F-201~203</td><td>统一任务列表与卡片信息</td><td>看板视图</td></tr>
+        <tr><td>P0</td><td>F-301~302</td><td>颜色标记与备注</td><td>编辑表单 / 添加表单</td></tr>
+        <tr><td>P0</td><td>F-401~403</td><td>本地保存与导入导出</td><td>自动；设置面板</td></tr>
+        <tr><td>P0</td><td>F-501~503</td><td>截止时间、通知、逾期高亮</td><td>编辑表单；系统通知</td></tr>
+        <tr><td>P1</td><td>F-601~602</td><td>速记小窗与托盘常驻</td><td>Ctrl + Alt + N；托盘菜单</td></tr>
+        <tr><td>P1</td><td>F-701~702</td><td>搜索与筛选</td><td>搜索框；筛选栏</td></tr>
+        <tr><td>P1</td><td>F-801~803</td><td>置顶、透明度、自启</td><td>设置面板</td></tr>
+        <tr><td>P1</td><td>F-901~906</td><td>桌面宠物</td><td>透明小窗；设置面板</td></tr>
+        <tr><td>扩展</td><td>—</td><td>日历视图与拖拽排期</td><td>「日历」切换</td></tr>
+      </table>
+    </section>
+
+    <section id="ai-tasks">
+      <h2><span class="idx">18</span>AI 整理与确认创建</h2>
+      <p class="lead">把工作描述或会议纪要变成任务草稿：粘贴 → AI 整理 → 检查并勾选 → 确认创建。无需选择整理模式。</p>
+      <ol class="steps">
+        <li>先按 <a href="#ai-models">第 19 节</a> 配置至少一个供应商和模型。</li>
+        <li>点击「新任务」，在「AI 输入」里粘贴内容，最多 30000 字。「模型选择」默认折叠，展开后可选择供应商和已配置模型。</li>
+        <li>点击「AI 整理」，或按 <span class="kbd">Ctrl + Enter</span>。普通回车只换行。整理期间可取消，失败后输入仍保留。</li>
+        <li>AI 自动识别工作描述、会议纪要或混合内容。会议中的讨论、否决、暂不执行事项不会作为明确行动项；补充步骤会标记为建议。</li>
+        <li>整理完成自动弹出预览，此时<b>没有创建任务</b>。核对后点击「确认并创建任务」才批量保存；关闭预览不会创建。</li>
+      </ol>
+      <figure class="shot"><div class="frame"><img src="images/12-ai-input.png" alt="新任务的简洁 AI 输入框，统一使用设置中的默认模型" /></div><figcaption><b>AI 输入</b>：直接描述要做的事，不必填写整理模式</figcaption></figure>
+      <figure class="shot"><div class="frame"><img src="images/13-ai-preview.png" alt="AI 任务预览清单与确认并创建任务按钮" /></div><figcaption><b>确认任务</b>：勾选、改标题、检查摘要后再创建；截图为演示结果，实际输出随模型变化</figcaption></figure>
+      <h3>预览怎么用？</h3>
+      <ul class="plain">
+        <li><b>勾选框</b>：只创建勾选且当前范围内可见的任务；AI 补充建议默认不选，可核实后选中。</li>
+        <li><b>标题</b>：直接点击输入框修改；右侧 × 仅从当前草稿移除该任务。</li>
+        <li><b>摘要与提醒</b>：显示负责人、截止时间、子任务数量。待确认内容和补充建议直接显示，请特别核实日期、归属和执行范围。</li>
+        <li><b>编辑详情</b>：展开修改备注、负责人、依赖、开始／截止时间、子任务及待确认事项，并查看对应原文。每个任务最多 50 条子任务，每条最多 200 字。</li>
+        <li><b>按负责人筛选</b>：展开后填写自己的姓名，切换「只看我的任务」；按负责人精确匹配，未指定负责人时请在「全部行动项」中查看。</li>
+        <li><b>会议结论与讨论</b>：有相关内容时可展开查看；「编辑原文 / 重新整理」用于补充输入后重新生成。</li>
+        <li><b>保存与撤销</b>：一次最多创建 50 个任务，负责人和依赖写入备注。成功后可「撤销刚才整批任务」；确认撤销会删除该批全部任务，包括之后的编辑。</li>
+      </ul>
+      <figure class="shot"><div class="frame"><img src="images/14-ai-details.png" alt="展开编辑详情，修改备注、负责人、依赖与子任务" /></div><figcaption><b>按需展开</b>：详细字段不会默认铺满确认界面</figcaption></figure>
+      <p>任务卡片的「查看原文」和预览中的「来源记录」可回看完整来源。来源随任务 JSON 备份导出、导入并在重启后保留。</p>
+      <div class="callout note"><span class="ico">🔒</span><div>只有本次整理输入及必要的日期、时区信息发送到所选模型服务，现有任务库不会整库发送。普通记事可离线使用；AI 输出需要人工核对。</div></div>
+    </section>
+
+    <section id="ai-models">
+      <h2><span class="idx">19</span>供应商与模型配置</h2>
+      <p class="lead">打开「设置 → AI 与模型」。每个供应商独立配置接口、协议、密钥和多个模型，使用时可切换。</p>
+      <figure class="shot"><div class="frame"><img src="images/15-model-providers.png" alt="供应商卡片列表，显示协议、模型数量和密钥状态" /></div><figcaption><b>供应商卡片</b>：点击编辑展开；「密钥已保存」仅说明本机已有凭据，是否可用请点「测试默认模型连接」</figcaption></figure>
+      <ol class="steps">
+        <li>点击「＋ 添加模型供应商」，填写供应商名称和个人 API Key。编辑已有供应商时，Key 留空会保留其已保存密钥；勾选「清除已保存密钥」后保存可删除该密钥。</li>
+        <li>展开「自定义设置」，选择 API 格式，填写服务商提供的基础地址或完整接口地址。基础地址通常包含 <code>/v1</code>；仅填域名时程序默认补 <code>/v1</code>。</li>
+        <li>在「手动添加模型」中填写模型 ID 并点击「添加模型」；或点击「检测并获取模型」，搜索、勾选后点击「添加所选模型」。检测使用当前表单的地址和 Key，Key 留空时使用该供应商保存的密钥。</li>
+        <li>模型目录只维护该供应商可用的模型；默认模型在页面顶部「全局默认模型」统一选择，修改后立即保存。</li>
+        <li>点击「测试默认模型连接」会用固定样例实际请求一次默认模型，只显示本次结果，不会发送现有任务。</li>
+        <li>点击「保存连接设置」生效并收起编辑器。「取消」放弃草稿。再次点击卡片「编辑」可以调整；删除供应商需要确认，不会删除已有任务。</li>
+      </ol>
+      <table><tr><th>API 格式</th><th>请求接口</th><th>适用情况</th></tr>
+        <tr><td>OpenAI 兼容（Chat Completions）</td><td><code>/chat/completions</code></td><td>使用该协议的服务；保持原有默认选项</td></tr>
+        <tr><td>OpenAI 兼容（Responses）</td><td><code>/responses</code></td><td>服务明确提供 Responses 接口时选择</td></tr>
+        <tr><td>Anthropic 兼容（Messages）</td><td><code>/messages</code></td><td>服务明确提供 Anthropic Messages 接口时选择</td></tr>
+      </table>
+      <figure class="shot"><div class="frame"><img src="images/16-provider-editor.png" alt="供应商编辑器与自定义设置" /></div><figcaption><b>供应商编辑</b>：地址、协议和模型目录位于自定义设置内</figcaption></figure>
+      <p>三种格式的认证和响应结构不同，请按服务商说明选择，不能仅改接口名称。模型检测查询同一地址前缀下的 <code>/models</code>，返回列表并不保证所有模型都支持任务整理或账户有调用额度。不支持列表的服务可直接手动添加模型 ID。</p>
+      <table><tr><th>遇到的问题</th><th>处理方法</th></tr>
+        <tr><td>Key 无效／无权限</td><td>核对当前供应商的 Key、模型权限和账户额度；不要混用其他供应商的密钥。</td></tr>
+        <tr><td>没有模型列表／404</td><td>核对基础地址；服务可能没有模型列表接口，按服务商提供的 ID 手动添加。</td></tr>
+        <tr><td>超时／网络错误</td><td>检查网络和服务状态后重试。原文会保留，普通任务管理仍可使用。</td></tr>
+        <tr><td>未返回完整 JSON</td><td>检查协议和模型兼容性，缩短输入或更换模型；失败时不会创建任务。</td></tr>
+      </table>
+      <p>旧单模型配置会自动迁移。密钥通过本机系统凭据加密，不会回填到输入框，也不包含在任务 JSON 导出文件中。</p>
+    </section>
+
+    <section id="project-resources">
+      <h2><span class="idx">20</span>项目资料与版本升级</h2>
+      <h3>项目资料</h3>
+      <p>切换顶部「项目资料」，点击「添加资料」，填写项目名称、资料名称、路径或链接和备注。可选择本机路径；保存后可打开、在文件夹中显示、复制路径或链接、编辑或删除记录。路径失效时会提示「路径不存在或已移动」，可重新定位；链接和本机路径会显示不同的操作。该入口保存的是路径／链接，不会自动读取文件内容或将资料作为 AI 知识库。</p>
+      <h3>升级到 1.2.0</h3>
+      <p>在原电脑、原用户下升级，会继续读取 <code>%APPDATA%\WithYou</code> 中的任务和设置。安装包包含功能与界面，<b>不包含个人任务、供应商 Key 或偏好设置</b>。换电脑安装时需要重新配置供应商和密钥。</p>
+      <p>任务导出包含 AI 来源记录，但不包含供应商密钥、外观偏好、桌宠状态或项目资料配置。迁移或换机时使用「设置 → 数据与备份 → 完整备份」，它会包含任务、资料和非敏感设置，但不包含供应商密钥；「导出 JSON」仍只导出任务与来源记录。请勿将含个人配置信息的目录作为安装包分发。</p>
+    </section>
+
+    <footer>
+      携手 WithYou v1.2.0 · 使用说明（图文版）· 文档更新于 2026-11-05<br />
+      本地保存任务 · AI 按需连接模型服务 · 导出 JSON 可自由备份迁移
+    </footer>
+  </main>
+</div>
+</body>
+</html>

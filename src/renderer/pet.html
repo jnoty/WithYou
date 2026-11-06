@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <title data-i18n="桌宠">桌宠</title>
+  <link rel="stylesheet" href="pet.css" />
+  <link rel="stylesheet" href="pet-sprites.css" />
+  <link rel="preload" as="image" href="../../assets/pet-run-strip.png" />
+  <link rel="preload" as="image" href="../../assets/pet-jump-strip.png" />
+  <link rel="preload" as="image" href="../../assets/pet-hide-strip.png" />
+  <link rel="preload" as="image" href="../../assets/pet-peek-strip.png" />
+  <link rel="preload" as="image" href="../../assets/pet-emerge-strip.png" />
+</head>
+<body>
+  <!-- 设计基准 160×180，按 petScale 整体缩放 -->
+  <div class="pet-stage" id="stage">
+    <div class="pet-bubble" id="bubble" hidden></div>
+    <div class="pet-hud" id="hud">
+      <span class="hud-level" id="hud-level">Lv.1</span>
+      <span class="hud-mood" id="hud-mood">♥ 80</span>
+    </div>
+    <div class="pet-wrap" id="pet-wrap">
+      <div class="pet mood-idle" id="pet">
+        <img class="pet-img" id="pet-img" src="../../assets/pet-cat-trimmed.png" alt="桌宠猫" draggable="false"  data-i18n-alt="桌宠猫">
+        <div class="pet-sprite" aria-hidden="true"></div>
+        <div class="pet-zzz" aria-hidden="true">Z<em>z</em><em>z</em></div>
+        <div class="pet-fx" id="pet-fx" aria-hidden="true"></div>
+      </div>
+    </div>
+    <div class="pet-treat" id="treat" hidden>🍰</div>
+  </div>
+  <script src="pet-hit-test.js"></script>
+  <script src="../i18n.js"></script>
+  <script src="i18n-runtime.js" data-entry="pet.js"></script>
+</body>
+</html>

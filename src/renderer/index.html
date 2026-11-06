@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta http-equiv="Content-Security-Policy"
+        content="default-src 'self'; style-src 'self'; script-src 'self'" />
+  <title data-i18n="携手 — 任务列表">携手 — 任务列表</title>
+  <link rel="stylesheet" href="styles.css" />
+  <link rel="stylesheet" href="theme.css" />
+  <link rel="stylesheet" href="withyou.css" />
+  <link rel="stylesheet" href="ai.css" />
+  <link rel="stylesheet" href="settings.css" />
+</head>
+<body>
+  <header class="app-titlebar">
+    <div class="window-brand"><img src="../../assets/icon.png" width="20" height="20" alt="" /><span data-brand data-i18n="携手">携手</span></div>
+  </header>
+  <div class="workspace">
+    <!-- 网页同款紧凑头部：日期 + 问候一行，右侧完成进度 -->
+    <header class="board-greeting">
+      <div class="greeting">
+        <span class="board-date" id="board-date" data-i18n="今天 · 工作与生活">今天 · 工作与生活</span>
+        <h1 class="greeting-title" data-i18n="你好，欢迎回来">你好，欢迎回来</h1>
+      </div>
+      <div class="overview-progress" aria-label="任务完成进度" data-i18n-aria-label="任务完成进度">
+        <div class="progress-ring"><strong id="progress-value">0</strong><small>%</small></div>
+        <div class="progress-copy"><strong id="progress-summary" aria-live="polite" data-i18n="已完成 0 / 0">已完成 0 / 0</strong><small data-i18n="全部任务 · 不含已取消">全部任务 · 不含已取消</small></div>
+      </div>
+    </header>
+    <progress class="board-progress" id="board-progress" max="100" value="0" aria-label="全部任务完成进度" data-i18n-aria-label="全部任务完成进度"></progress>
+    <div class="capturebar">
+      <div class="quick-add">
+        <div class="toolbar-right">
+          <div class="view-switch" id="view-switch" aria-label="视图切换" data-i18n-aria-label="视图切换">
+            <button class="view-btn active" data-view="board" data-i18n="任务列表">任务列表</button>
+            <button class="view-btn" data-view="calendar" data-i18n="日历计划">日历计划</button>
+            <button class="view-btn" data-view="resources" data-i18n="项目资料">项目资料</button>
+          </div>
+          <input id="search-input" type="search" placeholder="搜索任务" aria-label="搜索任务" autocomplete="off"  data-i18n-placeholder="搜索任务" data-i18n-aria-label="搜索任务">
+          <button id="btn-settings" class="icon-btn" title="设置" aria-label="打开设置" data-i18n-title="设置" data-i18n-aria-label="打开设置">⚙</button>
+        </div>
+        <button id="btn-add-task" class="add-task-btn" title="填写任务名 / 任务内容 / 开始时间 / 截止时间" data-i18n-title="填写任务名 / 任务内容 / 开始时间 / 截止时间"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg><span data-i18n="新任务">新任务</span></button>
+      </div>
+      <div class="task-filters" id="status-filters" aria-label="按完成状态筛选任务" data-i18n-aria-label="按完成状态筛选任务">
+        <button class="filter-btn active" data-filter="all" aria-pressed="true" data-i18n="全部">全部</button>
+        <button class="filter-btn" data-filter="active" aria-pressed="false" data-i18n="待完成">待完成</button>
+        <button class="filter-btn" data-filter="done" aria-pressed="false" data-i18n="已完成">已完成</button>
+        <button class="filter-btn" data-filter="cancelled" aria-pressed="false" data-i18n="已取消">已取消</button>
+        <button id="btn-toggle-filters" class="filter-toggle" aria-expanded="false" aria-controls="task-extra-filters"><svg class="filter-icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" aria-hidden="true"><path d="M4 7h9m4 0h3M4 17h3m4 0h9"/><circle cx="15" cy="7" r="2"/><circle cx="9" cy="17" r="2"/></svg><span data-i18n="筛选">筛选</span><span id="filter-summary"></span><svg class="filter-chevron" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m7 10 5 5 5-5"/></svg></button>
+      </div>
+    </div>
+
+  <!-- 筛选栏 -->
+  <div class="filterbar" id="task-extra-filters" hidden>
+    <div class="filter-group" id="due-filters" aria-label="按截止时间筛选" data-i18n-aria-label="按截止时间筛选"><span class="filter-label" data-i18n="时间">时间</span>
+      <button class="chip" data-due="today" data-i18n="今日">今日</button>
+      <button class="chip" data-due="tomorrow" data-i18n="明日">明日</button>
+      <button class="chip" data-due="week" data-i18n="本周">本周</button>
+      <button class="chip" data-due="overdue" data-i18n="逾期">逾期</button>
+    </div>
+    <div class="filter-group" id="color-filters" aria-label="按优先级筛选" data-i18n-aria-label="按优先级筛选"><span class="filter-label" data-i18n="优先级">优先级</span></div>
+    <button id="btn-clear-filters" class="ghost-btn" data-i18n="清除筛选">清除筛选</button>
+  </div>
+
+  <!-- 统一任务列表：状态由上方四个标签筛选 -->
+  <main class="board task-board" id="view-board">
+    <section class="task-list-panel" aria-labelledby="list-title">
+      <header class="column-header task-list-header">
+        <h2 id="list-title" data-i18n="全部任务">全部任务</h2>
+        <span class="count" id="list-count">0</span>
+      </header>
+      <div class="card-list task-list" id="list-all" aria-live="polite"></div>
+    </section>
+  </main>
+
+  <!-- 日历视图 -->
+  <section class="calendar" id="view-calendar" hidden>
+    <header class="cal-header">
+      <button id="cal-prev" class="icon-btn" title="上个月" data-i18n-title="上个月">‹</button>
+      <h2 id="cal-title"></h2>
+      <button id="cal-next" class="icon-btn" title="下个月" data-i18n-title="下个月">›</button>
+      <button id="cal-today" class="ghost-btn" data-i18n="今天">今天</button>
+      <div class="cal-view-switch" role="group" aria-label="日历视图" data-i18n-aria-label="日历视图">
+        <button type="button" class="ghost-btn" data-cal-view="month" aria-pressed="true" data-i18n="月视图">月视图</button>
+        <button type="button" class="ghost-btn" data-cal-view="week" aria-pressed="false" data-i18n="周视图">周视图</button>
+      </div>
+      <div class="filter-spacer"></div>
+      <span class="cal-hint" data-i18n="拖动任务可整体平移时间段，未排期任务拖入日期时询问截止时间；双击任务可编辑">拖动任务可整体平移时间段，未排期任务拖入日期时询问截止时间；双击任务可编辑</span>
+    </header>
+    <div class="cal-weekdays">
+      <span data-i18n="一">一</span><span data-i18n="二">二</span><span data-i18n="三">三</span><span data-i18n="四">四</span>
+      <span data-i18n="五">五</span><span data-i18n="六">六</span><span data-i18n="日">日</span>
+    </div>
+    <div class="cal-grid" id="cal-grid"></div>
+    <footer class="cal-unscheduled">
+      <span class="filter-label" data-i18n="未安排时间">未安排时间</span>
+      <div class="unscheduled-list" id="unscheduled-list"></div>
+    </footer>
+  </section>
+
+  <section id="view-resources" class="resource-view" hidden>
+    <header class="column-header"><h2 data-i18n="项目资料">项目资料</h2><div class="resource-heading-actions"><span id="resource-count" class="count"></span><button id="resource-add" class="primary-btn" data-i18n="添加资料">添加资料</button></div></header>
+    <div id="resource-list" class="resource-list"></div>
+  </section>
+
+  <div class="modal-mask" id="resource-mask" hidden>
+    <form class="modal resource-modal" id="resource-form" role="dialog" aria-modal="true" aria-label="项目资料">
+      <h3 id="resource-form-title">添加项目资料</h3>
+      <label class="field-label" for="resource-project" data-i18n="项目名称">项目名称</label><select id="resource-project-select" aria-label="选择项目" data-i18n-aria-label="选择项目"></select><input id="resource-project" maxlength="100" required placeholder="输入新项目名称" data-i18n-placeholder="输入新项目名称">
+      <label class="field-label" for="resource-name" data-i18n="资料名称">资料名称</label><input id="resource-name" maxlength="150" required>
+      <label class="field-label" for="resource-location" data-i18n="路径或链接">路径或链接</label><div class="resource-path-row"><input id="resource-location" maxlength="2000" required placeholder="C:\\项目\\代码 或 https://…"><button type="button" id="resource-browse" class="ghost-btn" data-i18n="浏览">浏览</button></div>
+      <label class="field-label" for="resource-note" data-i18n="备注">备注</label><textarea id="resource-note" maxlength="500" rows="2"></textarea>
+      <div class="modal-actions"><button type="button" id="resource-cancel" class="subtle-btn" data-i18n="取消">取消</button><button id="resource-save" class="primary-btn" data-i18n="保存">保存</button></div>
+    </form>
+  </div>
+
+  <footer class="board-foot"><span id="board-foot-count" data-i18n="从一件小事开始">从一件小事开始</span><span data-brand data-i18n="携手">携手</span></footer>
+  </div>
+
+  <!-- 设置面板 -->
+  <div class="modal-mask" id="settings-mask" hidden>
+    <div class="modal settings-modal" role="dialog" aria-modal="true" aria-label="设置" data-i18n-aria-label="设置">
+      <header class="settings-header"><h3 data-i18n="设置">设置</h3><p data-i18n="让携手更适合你的工作习惯">让携手更适合你的工作习惯</p></header>
+      <div class="settings-layout">
+      <nav class="settings-nav" aria-label="设置分类" data-i18n-aria-label="设置分类">
+        <button type="button" data-settings-tab="general" aria-pressed="true" data-i18n="通用与外观">通用与外观</button>
+        <button type="button" data-settings-tab="ai" aria-pressed="false" data-i18n="AI 与模型">AI 与模型</button>
+        <button type="button" data-settings-tab="priority" aria-pressed="false" data-i18n="颜色与优先级">颜色与优先级</button>
+        <button type="button" data-settings-tab="pet" aria-pressed="false" data-i18n="桌面宠物">桌面宠物</button>
+        <button type="button" data-settings-tab="data" aria-pressed="false" data-i18n="数据与备份">数据与备份</button>
+      </nav>
+      <div class="settings-content">
+      <section data-settings-panel="general"><h4 data-i18n="通用与外观">通用与外观</h4><p class="settings-description" data-i18n="调整界面、窗口和启动方式">调整界面、窗口和启动方式</p>
+      <label class="setting-row"><span data-i18n="界面语言">界面语言</span><select id="set-language" aria-label="界面语言" data-i18n-aria-label="界面语言"><option value="zh-CN" data-i18n="简体中文">简体中文</option><option value="en">English</option></select></label>
+      <label class="setting-row"><span data-i18n="阅读字号"></span><select id="set-text-size"><option value="1" data-i18n="标准">标准</option><option value="1.15" data-i18n="较大">较大</option><option value="1.3" data-i18n="大">大</option></select></label>
+      <label class="setting-row"><span data-i18n="界面主题"></span><select id="set-theme"><option value="system" data-i18n="跟随系统">跟随系统</option><option value="light" data-i18n="浅色">浅色</option><option value="dark" data-i18n="深色">深色</option></select></label>
+      <label class="setting-row"><span data-i18n="减少动态效果"></span><input id="set-reduced-motion" type="checkbox"></label>
+      <label class="setting-row">
+        <span data-i18n="窗口置顶">窗口置顶</span>
+        <input type="checkbox" id="set-always-on-top" />
+      </label>
+      <label class="setting-row">
+        <span><span data-i18n="窗口透明度">窗口透明度</span> <em id="opacity-value">100%</em></span>
+        <input type="range" id="set-opacity" min="50" max="100" step="5" value="100" />
+      </label>
+      <label class="setting-row">
+        <span data-i18n="卡片圆角">卡片圆角</span>
+        <input type="checkbox" id="set-rounded" checked />
+      </label>
+      <label class="setting-row">
+        <span data-i18n="开机自启">开机自启</span>
+        <input type="checkbox" id="set-autostart" />
+      </label>
+      <div class="setting-row">
+        <span data-i18n="全局热键">全局热键</span>
+        <code>Ctrl + Alt + N</code>
+      </div>
+      </section>
+      <section data-settings-panel="ai" hidden>
+        <h4 data-i18n="AI 与模型">AI 与模型</h4>
+        <p class="settings-description" data-i18n="为新增任务中的 AI 整理配置模型连接">为新增任务中的 AI 整理配置模型连接</p>
+        <label><span data-i18n="全局默认模型"></span><select id="ai-global-default"></select></label>
+        <p class="settings-description" data-i18n="快速添加和所有 AI 整理统一使用此默认模型。">快速添加和所有 AI 整理统一使用此默认模型。</p>
+        <p class="settings-description" data-i18n="全局默认模型修改后立即保存；供应商的模型目录和连接设置需点击「保存连接设置」。">全局默认模型修改后立即保存；供应商的模型目录和连接设置需点击「保存连接设置」。</p>
+        <button id="ai-test-connection" class="subtle-btn" data-i18n="测试默认模型连接"></button>
+        <div id="ai-provider-cards" class="provider-cards"></div>
+        <select id="ai-provider" hidden aria-label="供应商" data-i18n-aria-label="供应商"></select>
+        <button type="button" id="ai-add-provider" class="add-provider-card" data-i18n="＋ 添加模型供应商"></button>
+        <div id="ai-config" class="settings-ai-form provider-editor" hidden>
+          <div class="provider-editor-heading"><h4 id="ai-editor-title"></h4><button type="button" id="ai-cancel-edit" class="ghost-btn" data-i18n="取消"></button></div>
+          <label><span data-i18n="连接预设"></span><select id="ai-preset"><option value="">自定义</option><option value="deepseek">DeepSeek 开放平台</option><option value="kimi">Kimi 开放平台</option><option value="coding">Kimi Coding 套餐</option><option value="opencode">OpenCode Go 套餐</option></select></label>
+          <label><span data-i18n="供应商名称"></span><input id="ai-provider-name" maxlength="100"></label>
+          <label><span data-i18n="API Key（加密保存；留空保留现有密钥）"></span><input id="ai-key" type="password" autocomplete="new-password"></label>
+          <label class="settings-check"><input id="ai-clear-key" type="checkbox"><span data-i18n="清除已保存密钥"></span></label>
+          <details id="ai-custom-settings"><summary data-i18n="自定义设置"></summary>
+          <label><span data-i18n="API 格式"></span><select id="ai-format"><option value="openai" data-i18n="OpenAI 兼容（Chat Completions）"></option><option value="responses" data-i18n="OpenAI 兼容（Responses）"></option><option value="anthropic" data-i18n="Anthropic 兼容（Messages）"></option></select></label>
+          <label><span data-i18n="接口地址（基础地址或完整地址）"></span><input id="ai-endpoint" type="url" placeholder="https://your-provider.example/v1"></label>
+          <p class="settings-description" id="ai-format-hint"></p>
+          <h5 data-i18n="模型目录"></h5>
+          <select id="ai-model" hidden></select>
+          <p class="settings-description" data-i18n="默认模型请在上方「全局默认模型」选择；这里维护该供应商可用的模型目录。">默认模型请在上方「全局默认模型」选择；这里维护该供应商可用的模型目录。</p>
+          <div id="ai-configured-models" class="configured-models"></div>
+          <label><span data-i18n="手动添加模型"></span><input id="ai-model-input" maxlength="150" autocomplete="off"></label>
+          <button type="button" id="ai-add-model" class="subtle-btn" data-i18n="添加模型"></button>
+          <button type="button" id="ai-fetch-models" class="subtle-btn" data-i18n="检测并获取模型"></button>
+          <p id="ai-models-status" class="ai-status" role="status" aria-live="polite"></p>
+          <div id="ai-models-field" class="model-discovery" hidden>
+            <label><span data-i18n="搜索可用模型"></span><input id="ai-model-search" type="search"></label>
+            <div id="ai-model-results" class="model-results"></div>
+            <button type="button" id="ai-add-selected" class="subtle-btn" data-i18n="添加所选模型"></button>
+          </div>
+          <p class="settings-description" data-i18n="使用当前填写的 Key（留空则使用已保存的 Key）获取服务返回的模型列表，不会自动保存配置。模型是否支持任务整理需实际调用确认。"></p>
+          </details>
+          <p class="settings-description" data-i18n="密钥在本机加密保存。仅整理时发送本次输入，不发送现有任务库。"></p>
+          <div class="provider-editor-actions"><button type="button" id="ai-delete-provider" class="ghost-btn" data-i18n="删除供应商"></button><button type="button" id="ai-save-config" class="primary-btn" data-i18n="保存连接设置"></button></div>
+        </div>
+        <p id="settings-ai-status" class="ai-status" role="status" aria-live="polite"></p>
+      </section>
+      <section data-settings-panel="priority" hidden>
+      <div class="setting-row setting-group">
+        <span data-i18n="颜色与优先级">颜色与优先级</span>
+      </div>
+      <div class="priority-hint" data-i18n="默认 4 级（紧急/高/普通/低）+ 无色；旧版 9 级配置会原样保留。顺序即等级（上高下低），名称留空则不显示标签。">
+        默认 4 级（紧急/高/普通/低）+ 无色；旧版 9 级配置会原样保留。顺序即等级（上高下低），名称留空则不显示标签。
+      </div>
+      <div id="priority-list"></div>
+      </section>
+      <section data-settings-panel="pet" hidden>
+      <div class="setting-row setting-group">
+        <span data-i18n="桌面宠物">桌面宠物</span>
+      </div>
+      <label class="setting-row">
+        <span data-i18n="显示桌宠">显示桌宠</span>
+        <input type="checkbox" id="set-pet-enabled" checked />
+      </label>
+      <label class="setting-row">
+        <span><span data-i18n="宠物大小">宠物大小</span> <em id="pet-scale-value">100%</em></span>
+        <input type="range" id="set-pet-scale" min="80" max="150" step="10" value="100" />
+      </label>
+      <label class="setting-row">
+        <span data-i18n="系统通知">系统通知</span>
+        <input type="checkbox" id="set-notify-system" checked />
+      </label>
+      <label class="setting-row">
+        <span data-i18n="气泡提醒">气泡提醒</span>
+        <input type="checkbox" id="set-pet-bubbles" checked />
+      </label>
+      <label class="setting-row">
+        <span><span data-i18n="贴边吸附">贴边吸附</span> <em data-i18n="躲到桌角探头，悬停跑出坐下">躲到桌角探头，悬停跑出坐下</em></span>
+        <input type="checkbox" id="set-pet-snap" checked />
+      </label>
+      <label class="setting-row"><span data-i18n="允许居中提醒动画"></span><input type="checkbox" id="set-pet-animation" checked></label>
+      <label class="setting-row">
+        <span><span data-i18n="安静模式">安静模式</span> <em data-i18n="关闭系统通知、气泡和居中动画">关闭系统通知、气泡和居中动画</em></span>
+        <input type="checkbox" id="set-quiet-mode" />
+      </label>
+      <details class="settings-advanced">
+        <summary data-i18n="预览与动作库">预览与动作库</summary>
+      <div class="setting-row">
+        <span><span data-i18n="居中提醒动画">居中提醒动画</span> <em data-i18n="奔跑 → 放大 1.5 倍 → 跳回，共 3 秒">奔跑 → 放大 1.5 倍 → 跳回，共 3 秒</em></span>
+        <button id="btn-preview-pet-reminder" class="ghost-btn" data-i18n="预览动画">预览动画</button>
+      </div>
+      <div class="setting-row">
+        <span><span data-i18n="猫咪动作库">猫咪动作库</span> <em data-i18n="奔跑、跳跃、躲藏、探头、跑出坐下">奔跑、跳跃、躲藏、探头、跑出坐下</em></span>
+        <button id="btn-preview-pet-clips" class="ghost-btn" data-i18n="查看动作动画">查看动作动画</button>
+      </div>
+      </details>
+      </section>
+      <section data-settings-panel="data" hidden>
+      <p data-i18n="完整备份包含任务、资料和非敏感设置，不包含密钥；导入前可查看数量。"></p><h4 data-i18n="数据与备份">数据与备份</h4><p class="settings-description" data-i18n="备份任务和来源记录，或从备份合并恢复">备份任务和来源记录，或从备份合并恢复</p>
+      <div class="setting-row">
+        <span><span data-i18n="导出任务">导出任务</span> <em data-i18n="备份为 JSON 文件">备份为 JSON 文件</em></span>
+        <button id="btn-export-full" class="ghost-btn" data-i18n="完整备份"></button><button id="btn-export" class="ghost-btn" data-i18n="导出 JSON">导出 JSON</button>
+      </div>
+      <div class="setting-row">
+        <span><span data-i18n="导入任务">导入任务</span> <em data-i18n="合并 JSON 中的任务">合并 JSON 中的任务</em></span>
+        <button id="btn-import" class="ghost-btn" data-i18n="导入 JSON">导入 JSON</button>
+      </div>
+      </section>
+      </div>
+      </div>
+      <div class="modal-actions">
+        <button id="btn-close-settings" class="primary-btn" data-i18n="关闭">关闭</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 添加任务弹窗 -->
+  <div class="modal-mask" id="add-task-mask" hidden>
+    <div class="modal add-task-modal" role="dialog" aria-label="添加任务" data-i18n-aria-label="添加任务">
+      <h3 data-i18n="添加任务">添加任务</h3>
+      <details id="add-pending" hidden><summary id="add-pending-summary" data-i18n="待确认草稿"></summary><div id="add-pending-list"></div></details>
+      <div id="add-mode-tabs" class="ai-row" hidden>
+        <button type="button" id="add-mode-ai" class="primary-btn" data-i18n="AI 输入"></button>
+        <button type="button" id="add-mode-manual" class="subtle-btn" data-i18n="手动填写"></button>
+      </div>
+      <section id="add-ai-fields" hidden>
+        <div class="field">
+          <label class="field-label" for="add-ai-text" data-i18n="工作内容或会议记录"></label>
+          <textarea id="add-ai-text" maxlength="30000" data-i18n-placeholder="直接粘贴要做的事情，支持多行内容" placeholder="直接粘贴要做的事情，支持多行内容"></textarea>
+        </div>
+        <p class="ai-help" data-i18n="整理后先预览，确认才创建。内容将发送到所选模型服务。"></p>
+        <p id="add-ai-status" class="ai-status" role="status" aria-live="polite"></p>
+      </section>
+      <div id="add-manual-fields">
+      <div class="field">
+        <label class="field-label" for="add-title"><span data-i18n="任务名">任务名</span> <em data-i18n="必填">必填</em></label>
+        <input type="text" id="add-title" maxlength="100"
+               placeholder="要做什么？（≤ 100 字）" autocomplete="off"  data-i18n-placeholder="要做什么？（≤ 100 字）">
+      </div>
+      <div class="field">
+        <label class="field-label" for="add-note" data-i18n="任务内容">任务内容</label>
+        <textarea id="add-note" maxlength="500"
+                  placeholder="补充说明（可选，≤ 500 字）" data-i18n-placeholder="补充说明（可选，≤ 500 字）"></textarea>
+      </div>
+      <div class="field-row">
+        <div class="field">
+          <label class="field-label" for="add-start" data-i18n="开始时间">开始时间</label>
+          <input type="datetime-local" id="add-start" />
+        </div>
+        <div class="field">
+          <label class="field-label" for="add-end" data-i18n="截止时间">截止时间</label>
+          <input type="datetime-local" id="add-end" />
+        </div>
+      </div>
+      <div class="field">
+        <label class="field-label" for="add-reminder"><span data-i18n="提醒时间">提醒时间</span></label>
+        <select id="add-reminder"><option value="5" data-i18n="提前5分钟">提前5分钟</option><option value="10" data-i18n="提前10分钟">提前10分钟</option><option value="30" data-i18n="提前30分钟">提前30分钟</option></select>
+        <p class="form-hint" data-i18n="按截止时间提前提醒；没有截止时间时按开始时间，未设置时间时不提醒">按截止时间提前提醒；没有截止时间时按开始时间，未设置时间时不提醒</p>
+      </div>
+      <div class="field">
+        <label class="field-label" data-i18n="紧急程度">紧急程度</label>
+        <div class="priority-pick" id="add-priority"></div>
+      </div>
+      <div class="field-row">
+        <div class="field">
+          <label class="field-label" for="add-repeat" data-i18n="重复">重复</label>
+          <select id="add-repeat">
+            <option value="" data-i18n="不重复">不重复</option>
+            <option value="daily" data-i18n="每天">每天</option>
+            <option value="weekly" data-i18n="每周">每周</option>
+            <option value="monthly" data-i18n="每月">每月</option>
+          </select>
+        </div>
+        <div class="field" id="add-until-field" hidden>
+          <label class="field-label" for="add-until" data-i18n="重复截止日期">重复截止日期</label>
+          <input type="date" id="add-until" />
+        </div>
+      </div>
+      <div class="form-hint" id="add-preview" hidden></div>
+      </div>
+      <div class="form-error" id="add-error" hidden></div>
+      <div class="modal-actions">
+        <button id="btn-cancel-add" class="subtle-btn" data-i18n="取消">取消</button>
+        <button id="btn-create-task" class="primary-btn" data-i18n="创建">创建</button>
+        <button id="btn-ai-create-task" class="primary-btn" data-i18n="AI 整理" hidden></button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 取消任务理由弹窗 -->
+  <div class="modal-mask" id="cancel-reason-mask" hidden>
+    <div class="modal" role="dialog" aria-label="取消任务" data-i18n-aria-label="取消任务">
+      <h3 data-i18n="取消任务">取消任务</h3>
+      <div class="field">
+        <label class="field-label" for="cancel-reason-input"><span data-i18n="取消原因">取消原因</span> <em data-i18n="可选">可选</em></label>
+        <textarea id="cancel-reason-input" maxlength="500"
+                  placeholder="为什么取消这个任务？（≤ 500 字）" data-i18n-placeholder="为什么取消这个任务？（≤ 500 字）"></textarea>
+      </div>
+      <div class="modal-actions">
+        <button id="btn-cancel-reason-cancel" class="subtle-btn" data-i18n="暂不取消">暂不取消</button>
+        <button id="btn-cancel-reason-confirm" class="primary-btn" data-i18n="确认取消">确认取消</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 删除撤销 Toast -->
+  <div class="toast" id="undo-toast" hidden>
+    <span id="undo-text" data-i18n="任务已删除">任务已删除</span>
+    <button id="btn-undo" data-i18n="撤销">撤销</button>
+  </div>
+
+  <script src="../i18n.js"></script>
+  <script src="i18n-runtime.js" data-entry="app.js"></script>
+</body>
+</html>

@@ -1,0 +1,18 @@
+/* 速记小窗：与主看板共用薄荷 / 森林绿 / 金黄主题。 */
+@import url('theme.css');
+* { box-sizing: border-box; }
+body { margin: 0; font-family: "Segoe UI", "Microsoft YaHei", system-ui, sans-serif; background: var(--panel); color: var(--text); user-select: none; }
+.wrap { padding: 10px 16px 10px; border: 2px solid var(--brand-deep); border-left: 6px solid var(--brand); height: 100vh; display: flex; flex-direction: column; gap: 6px; background: linear-gradient(115deg, var(--panel), var(--bg)); }
+.hint { font-size: 11px; line-height: 1.35; color: var(--brand); font-weight: 600; }
+input { width: 100%; padding: 8px 12px; font-size: 14px; border: 1px solid var(--border); border-radius: 12px; background: var(--panel); outline: none; }
+input:focus { border-color: var(--brand); }
+.footer { display: flex; align-items: center; justify-content: space-between; font-size: 10px; color: var(--text-dim); }
+button { padding: 5px 14px; border: 1px solid var(--brand-deep); border-radius: 16px; background: var(--accent); color: var(--brand-deep); box-shadow: 2px 2px 0 var(--brand-deep); font-size: 12px; font-weight: 700; cursor: pointer; }
+button:hover { background: var(--mint); }
+button:active { transform: translate(1px, 1px); box-shadow: 1px 1px 0 var(--brand-deep); }
+
+#quick-preview { overflow-y: auto; max-height: 140px; font-size: 13px; user-select: text; }
+#quick-preview > div { padding: 6px 0; border-bottom: 1px solid var(--border); }
+#quick-status { margin: 0; font-size: 12px; overflow-wrap: anywhere; overflow-y: auto; max-height: 55px; }
+.footer { margin-top: auto; gap: 8px; }
+button:disabled { opacity: .6; cursor: wait; }
