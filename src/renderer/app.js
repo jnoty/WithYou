@@ -981,7 +981,7 @@ function render() {
     const tasks = groups.get(project);
     const section = document.createElement('details');
     section.className = 'task-project';
-    section.open = Boolean(state.search) || !state.collapsedTaskProjects.has(project);
+    section.open = Boolean(state.search) || !collapsedTaskProjects.has(project);
     const heading = document.createElement('summary');
     heading.className = 'task-project-heading';
     const name = document.createElement('span');

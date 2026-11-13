@@ -5,6 +5,8 @@ function createPetDock({ getWindow, getWorkArea, getCursor, send, now = Date.now
   schedule = setInterval, unschedule = clearInterval }) {
   let state = null, timer = null;
   const place = (p) => getWindow().setPosition(Math.round(p.x), Math.round(p.y), false);
+  const isInside = (cursor, bounds) => cursor.x >= bounds.x && cursor.x < bounds.x + bounds.width
+    && cursor.y >= bounds.y && cursor.y < bounds.y + bounds.height;
   const phase = (name) => {
     state.phase = name; state.since = now();
     send('pet:dock', { phase: name, side: state.side });
@@ -21,6 +23,12 @@ function createPetDock({ getWindow, getWorkArea, getCursor, send, now = Date.now
   }
   function hover(value) {
     if (!state || state.paused) return;
+    if (value && !isInside(getCursor(), getWindow().getBounds())) value = false;
+    if (state.phase === 'peek' && state.cursorAtRetractionStart) {
+      const cursor = getCursor();
+      if (cursor.x === state.cursorAtRetractionStart.x && cursor.y === state.cursorAtRetractionStart.y) return;
+      state.cursorAtRetractionStart = null;
+    }
     state.hovered = Boolean(value);
     if (state.phase === 'peek' && value) {
       state.from = getWindow().getBounds(); phase('emerge');
@@ -54,8 +62,12 @@ function createPetDock({ getWindow, getWorkArea, getCursor, send, now = Date.now
       if (elapsed >= 800) { phase('sit'); state.leaveAt = state.hovered ? null : now(); }
     }
     const b = win.getBounds(), cursor = getCursor();
-    if (cursor.x < b.x || cursor.x >= b.x + b.width || cursor.y < b.y || cursor.y >= b.y + b.height) hover(false);
-    if (state.phase === 'sit' && state.leaveAt !== null && now() - state.leaveAt >= 1200) hide();
+    if (!isInside(cursor, b)) hover(false);
+    if (state.phase === 'sit' && state.leaveAt !== null && now() - state.leaveAt >= 1200) {
+      // Ignore a stationary pointer, while allowing re-entry during the hide animation.
+      state.cursorAtRetractionStart = cursor;
+      hide();
+    }
   }
   return {
     dock(force = false) {

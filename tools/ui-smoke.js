@@ -444,7 +444,7 @@ app.whenReady().then(async () => {
     await waitFor(win, `${projectLabel}.textContent === '携手'`);
     assert.deepEqual(await run(win, `[...document.querySelectorAll('.task-project-label')].map(label => label.textContent)`), ['携手', '未分类']);
     await run(win, `${projectLabel}.click()`);
-    await waitFor(win, `state.collapsedTaskProjects.has('携手')`);
+    await waitFor(win, `collapsedTaskProjects.has('携手')`);
     await run(win, `render()`);
     assert.equal(await run(win, `${projectLabel}.closest('details').open`), false);
     const searchProject = value => run(win, `(() => { const input = document.querySelector('#search-input');

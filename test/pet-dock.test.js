@@ -52,5 +52,48 @@ dock.dock(); at(11340);
 assert.equal(phase(), 'peek');
 dock.hover(true);
 assert.equal(phase(), 'emerge', '第一次悬停就应展开，无须先触发一次移出');
+for (let round = 1; round <= 20; round++) {
+  const seatedAt = 12140 + (round - 1) * 2640;
+  at(seatedAt);
+  assert.equal(phase(), 'sit');
+  dock.hover(false);
+  at(seatedAt + 1200);
+  at(seatedAt + 1840);
+  assert.equal(phase(), 'peek');
+  dock.hover(true); // The returning silhouette now covers the stationary pointer.
+  assert.equal(phase(), 'peek', `第 ${round} 轮：静止鼠标不应再次触发展开`);
+  assert.deepEqual({ x: bounds.x, y: bounds.y }, { x: -1920, y: 860 }, `第 ${round} 轮：桌角坐标应保持一致`);
+  if (round < 20) {
+    cursor = { ...cursor, x: cursor.x + 1 };
+    dock.hover(true);
+    assert.equal(phase(), 'emerge');
+  }
+}
+console.log('连续 20 轮悬停与收回：每轮均回到 (-1920, 860)，静止鼠标未再次触发展开');
+cursor = { ...cursor, x: cursor.x + 1 };
+dock.hover(true);
+const lastSeatedAt = time + 800;
+at(lastSeatedAt);
+assert.equal(phase(), 'sit');
+dock.hover(false);
+at(lastSeatedAt + 1200);
+assert.equal(phase(), 'hide');
+cursor = { ...cursor, x: cursor.x + 1 };
+dock.hover(true);
+at(lastSeatedAt + 1840);
+dock.hover(true);
+assert.equal(phase(), 'emerge', '收回途中移回猫身并停住，收回结束后也应响应');
+const seatedAgainAt = time + 800;
+at(seatedAgainAt);
+assert.equal(phase(), 'sit');
+cursor = { x: 100, y: 100 };
+at(seatedAgainAt + 16);
+for (let elapsed = 75; elapsed <= 1200; elapsed += 75) {
+  dock.hover(true); // A stale renderer hit test still reports the cat under the pointer.
+  at(seatedAgainAt + 16 + elapsed);
+}
+assert.equal(phase(), 'hide', '窗口外的过期悬停消息不应重置收回计时');
+at(seatedAgainAt + 1856);
+assert.equal(phase(), 'peek');
 dock.cancel();
 console.log('桌角躲藏：左 / 右副屏、躲藏→探头→悬停跑出坐下、延迟收起、提醒暂停 / 恢复、150% 大小、取消 / 销毁通过');
