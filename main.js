@@ -331,7 +331,7 @@ function main() {
     for (const task of due) {
       if (settings.notifySystem !== false) {
         const n = new Notification({
-          title: tr('任务到期提醒'),
+          title: tr('任务提醒'),
           body: task.title,
           icon: fs.existsSync(ICON) ? ICON : undefined,
         });
@@ -715,7 +715,7 @@ function main() {
         const reminderOffset = base.reminderAt && anchor
           ? new Date(base.reminderAt).getTime() - new Date(anchor).getTime() : null;
         const created = store.createMany(plan.map((occ) => ({
-          seriesId, title: base.title,
+          seriesId, title: base.title, project: base.project,
           note: base.note,
           status: 'todo',
           color: typeof base.color === 'string' ? base.color : '',
@@ -799,14 +799,20 @@ function main() {
     ipcMain.handle('project-resources:list', () => projectResources.list());
     ipcMain.handle('project-resources:check', async () => {
       const result = {};
-      await Promise.all(projectResources.list().map(async (item) => {
-        if (isRemoteLocation(item.location)) { result[item.id] = { kind: 'url', exists: true }; return; }
+      const checkLocation = async (location) => {
+        if (isRemoteLocation(location)) return { kind: 'url', exists: true };
         try {
-          const stat = await fs.promises.stat(localLocation(item.location));
-          result[item.id] = { kind: stat.isDirectory() ? 'directory' : 'file', exists: true };
+          const stat = await fs.promises.stat(localLocation(location));
+          return { kind: stat.isDirectory() ? 'directory' : 'file', exists: true };
         } catch (_) {
-          result[item.id] = { kind: 'missing', exists: false };
+          return { kind: 'missing', exists: false };
         }
+      };
+      await Promise.all(projectResources.list().map(async (item) => {
+        const locations = item.location.split('\n');
+        const checks = await Promise.all(locations.map(checkLocation));
+        result[item.id] = locations.length === 1 ? checks[0]
+          : { kind: 'multiple', exists: checks.every(check => check.exists) };
       }));
       return result;
     });
@@ -822,6 +828,7 @@ function main() {
     });
     ipcMain.handle('project-resources:choose-path', async (_e, current) => {
       const options = { properties: ['openFile', 'openDirectory'] };
+      current = String(current || '').split(/\r\n?|\n/, 1)[0].trim();
       if (current && !isRemoteLocation(current)) {
         const target = localLocation(current);
         if (fs.existsSync(target)) options.defaultPath = target;

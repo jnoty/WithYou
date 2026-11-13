@@ -72,6 +72,7 @@
       <div class="card-list task-list" id="list-all" aria-live="polite"></div>
     </section>
   </main>
+  <datalist id="task-project-options"></datalist>
 
   <!-- 日历视图 -->
   <section class="calendar" id="view-calendar" hidden>
@@ -108,7 +109,7 @@
       <h3 id="resource-form-title">添加项目资料</h3>
       <label class="field-label" for="resource-project" data-i18n="项目名称">项目名称</label><select id="resource-project-select" aria-label="选择项目" data-i18n-aria-label="选择项目"></select><input id="resource-project" maxlength="100" required placeholder="输入新项目名称" data-i18n-placeholder="输入新项目名称">
       <label class="field-label" for="resource-name" data-i18n="资料名称">资料名称</label><input id="resource-name" maxlength="150" required>
-      <label class="field-label" for="resource-location" data-i18n="路径或链接">路径或链接</label><div class="resource-path-row"><input id="resource-location" maxlength="2000" required placeholder="C:\\项目\\代码 或 https://…"><button type="button" id="resource-browse" class="ghost-btn" data-i18n="浏览">浏览</button></div>
+      <label class="field-label" for="resource-location" data-i18n="路径或链接">路径或链接</label><div class="resource-path-row"><textarea id="resource-location" maxlength="2000" rows="2" required placeholder="多个链接可每行填写一个" data-i18n-placeholder="多个链接可每行填写一个"></textarea><button type="button" id="resource-browse" class="ghost-btn" data-i18n="浏览">浏览</button></div>
       <label class="field-label" for="resource-note" data-i18n="备注">备注</label><textarea id="resource-note" maxlength="500" rows="2"></textarea>
       <div class="modal-actions"><button type="button" id="resource-cancel" class="subtle-btn" data-i18n="取消">取消</button><button id="resource-save" class="primary-btn" data-i18n="保存">保存</button></div>
     </form>
@@ -289,6 +290,11 @@
                placeholder="要做什么？（≤ 100 字）" autocomplete="off"  data-i18n-placeholder="要做什么？（≤ 100 字）">
       </div>
       <div class="field">
+        <label class="field-label" for="add-project" data-i18n="所属项目（可选）">所属项目（可选）</label>
+        <input type="text" id="add-project" maxlength="100" list="task-project-options"
+               placeholder="留空归入未分类" data-i18n-placeholder="留空归入未分类">
+      </div>
+      <div class="field">
         <label class="field-label" for="add-note" data-i18n="任务内容">任务内容</label>
         <textarea id="add-note" maxlength="500"
                   placeholder="补充说明（可选，≤ 500 字）" data-i18n-placeholder="补充说明（可选，≤ 500 字）"></textarea>
@@ -306,7 +312,7 @@
       <div class="field">
         <label class="field-label" for="add-reminder"><span data-i18n="提醒时间">提醒时间</span></label>
         <select id="add-reminder"><option value="5" data-i18n="提前5分钟">提前5分钟</option><option value="10" data-i18n="提前10分钟">提前10分钟</option><option value="30" data-i18n="提前30分钟">提前30分钟</option></select>
-        <p class="form-hint" data-i18n="按截止时间提前提醒；没有截止时间时按开始时间，未设置时间时不提醒">按截止时间提前提醒；没有截止时间时按开始时间，未设置时间时不提醒</p>
+        <p class="form-hint" data-i18n="优先在开始前提醒。仅填写截止时间时，在截止前提醒。">优先在开始前提醒。仅填写截止时间时，在截止前提醒。</p>
       </div>
       <div class="field">
         <label class="field-label" data-i18n="紧急程度">紧急程度</label>

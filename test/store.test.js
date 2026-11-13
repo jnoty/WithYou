@@ -35,6 +35,17 @@ ok('create: 空标题抛错', () => {
   assert.throws(() => s.create({ title: '   ' }));
 });
 
+ok('project: 旧任务默认未分类，项目可保存、导入和清空', () => {
+  const s = new TaskStore(path.join(dir, 'projects.json'));
+  const [legacy] = s.importJSON(JSON.stringify([{ title: '旧任务' }]));
+  assert.strictEqual(legacy.project, '');
+  const t = s.create({ title: '设计评审', project: '  新项目  ' });
+  assert.strictEqual(new TaskStore(s.filePath).get(t.id).project, '新项目');
+  assert.strictEqual(s.importJSON(s.exportJSON()).find(task => task.title === t.title).project, '新项目');
+  s.update(t.id, { project: '' });
+  assert.strictEqual(new TaskStore(s.filePath).get(t.id).project, '');
+});
+
 ok('create: 标题/备注超长截断', () => {
   const s = new TaskStore(file);
   const t = s.create({ title: 'x'.repeat(300), note: 'y'.repeat(1500) });
@@ -415,13 +426,13 @@ ok('dueForReminder: 到期未提醒且未完成的任务', () => {
   assert.strictEqual(dueForReminder([mk({ notifiedAt: new Date().toISOString() })], now).length, 0);
   assert.strictEqual(dueForReminder([mk({ status: 'done' })], now).length, 0);
   assert.strictEqual(dueForReminder([mk({ status: 'cancelled' })], now).length, 0);
-  assert.strictEqual(dueForReminder([mk({ dueAt: new Date(now + 60000).toISOString() })], now).length, 0);
+  assert.strictEqual(dueForReminder([mk({ dueAt: new Date(now + 6 * 60000).toISOString() })], now).length, 0);
   // 只有开始时间的会议/事件按开始时间提醒。
   assert.strictEqual(dueForReminder([mk({ dueAt: null, startAt: new Date(now - 1000).toISOString() })], now).length, 1);
-  assert.strictEqual(dueForReminder([mk({ dueAt: null, startAt: new Date(now + 60000).toISOString() })], now).length, 0);
-  // 同时有开始/截止时间的普通任务按截止时间提醒，不按开始时间。
-  assert.strictEqual(dueForReminder([mk({ startAt: new Date(now - 60000).toISOString(), dueAt: new Date(now + 60000).toISOString() })], now).length, 0);
-  // 显式提醒时间优先于截止时间，并可推迟提醒。
+  assert.strictEqual(dueForReminder([mk({ dueAt: null, startAt: new Date(now + 6 * 60000).toISOString() })], now).length, 0);
+  // 缺少提前量的旧任务也默认在开始前五分钟提醒。
+  assert.strictEqual(dueForReminder([mk({ startAt: new Date(now + 5 * 60000).toISOString(), dueAt: new Date(now + 60 * 60000).toISOString() })], now).length, 1);
+  // 兼容旧的独立提醒时间。
   assert.strictEqual(dueForReminder([mk({ reminderAt: new Date(now - 1000).toISOString(), dueAt: new Date(now + 60000).toISOString() })], now).length, 1);
   assert.strictEqual(dueForReminder([mk({ reminderAt: new Date(now + 60000).toISOString(), dueAt: new Date(now - 60000).toISOString() })], now).length, 0);
   assert.strictEqual(dueForReminder([mk({ reminderDisabled: true })], now).length, 0);
@@ -433,7 +444,7 @@ ok('reminderMinutes: 三档提前提醒，改期后重新计算', () => {
   const s = new TaskStore(path.join(dir, 'reminder-offsets.json'));
   for (const minutes of [5,10,30]) {
     const task = s.create({ title:'提醒', startAt:'2030-01-01T10:00:00Z', dueAt:'2030-01-01T12:00:00Z', reminderMinutes:minutes });
-    const reminder = Date.parse(task.dueAt) - minutes * 60000;
+    const reminder = Date.parse(task.startAt) - minutes * 60000;
     assert.equal(dueForReminder([task],reminder-1).length,0);
     assert.equal(dueForReminder([task],reminder).length,1);
   }
@@ -446,6 +457,20 @@ ok('reminderMinutes: 三档提前提醒，改期后重新计算', () => {
   assert.equal(dueForReminder([task], Date.parse('2030-01-02T09:50:00Z')).length,1);
   assert.equal(new TaskStore(s.filePath).get(task.id).reminderMinutes,10);
   assert.equal(dueForReminder([s.create({title:'无时间',reminderMinutes:5})], Date.now()).length,0);
+  const deadline = s.create({ title: '只有截止时间', dueAt: '2030-01-01T12:00:00Z' });
+  const fallbackTime = Date.parse('2030-01-01T11:55:00Z');
+  assert.equal(dueForReminder([deadline], fallbackTime - 1).length, 0);
+  assert.equal(dueForReminder([deadline], fallbackTime).length, 1);
+});
+
+ok('reminderMinutes: 只修改结束时间时保留已提醒标记', () => {
+  const s = new TaskStore(path.join(dir, 'reminder-dedup.json'));
+  const task = s.create({ title: '会议', startAt: '2030-01-01T10:00:00Z', dueAt: '2030-01-01T12:00:00Z' });
+  const notifiedAt = '2030-01-01T09:55:00Z';
+  task.notifiedAt = notifiedAt;
+  s.update(task.id, { dueAt: '2030-01-01T13:00:00Z', reminderMinutes: 5, reminderAt: null, reminderDisabled: false });
+  assert.equal(task.notifiedAt, notifiedAt);
+  assert.equal(dueForReminder([task], Date.parse(notifiedAt)).length, 0);
 });
 
 console.log(`\n全部 ${passed} 项测试通过 ✓`);

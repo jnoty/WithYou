@@ -10,7 +10,7 @@
  * / steps / createdAt / updatedAt / completedAt
  * （额外维护 notifiedAt：提醒去重标记）
  * 其中 dueAt 为结束（截止）时间，startAt 为开始时间。
- * 提醒时间优先使用显式 reminderAt；否则按截止时间；只有开始时间的事件按开始时间提醒；
+ * 普通提醒按开始时间计算，只有截止时间时按截止时间计算。兼容旧的独立提醒时间。
  * steps 为子任务清单：[{ id, content, status }]，status 取 todo | done。
  *
  * 导入（importJSON）额外兼容旧版 MoliTodo v3 备份格式：
@@ -23,6 +23,7 @@ const path = require('path');
 const crypto = require('crypto');
 
 const MAX_TITLE = 200;
+const MAX_PROJECT = 100;
 const MAX_NOTE = 1000;
 const MAX_STEP_CONTENT = 200;
 const MAX_STEPS = 50;
@@ -197,6 +198,7 @@ class TaskStore {
     return {
       id: typeof t.id === 'string' && t.id ? t.id : newId(),
       title: clampText(t.title, MAX_TITLE),
+      project: clampText(t.project, MAX_PROJECT).trim(),
       note: preserveLegacyDate(t.note, t.dateAt),
       status: normalizeStatus(t.status),
       color: typeof t.color === 'string' ? t.color : '',
@@ -292,6 +294,7 @@ class TaskStore {
     return {
       id: newId(),
       title,
+      project: clampText(input.project, MAX_PROJECT).trim(),
       note: preserveLegacyDate(input.note, input.dateAt),
       status,
       color: typeof input.color === 'string' ? input.color : '',
@@ -315,29 +318,26 @@ class TaskStore {
   update(id, patch = {}) {
     const task = this.get(id);
     if (!task) throw new Error('任务不存在: ' + id);
+    const previousReminderTime = reminderTime(task);
     if (patch.title !== undefined) {
       const title = clampText(patch.title, MAX_TITLE).trim();
       if (!title) throw new Error('任务标题不能为空');
       task.title = title;
     }
     if (patch.note !== undefined) task.note = preserveLegacyDate(patch.note);
+    if (patch.project !== undefined) task.project = clampText(patch.project, MAX_PROJECT).trim();
     if (patch.steps !== undefined) task.steps = sanitizeSteps(patch.steps);
     if (patch.color !== undefined) task.color = String(patch.color);
-    if (patch.startAt !== undefined) { if (normalizeISO(patch.startAt) !== task.startAt) task.notifiedAt = null; task.startAt = normalizeISO(patch.startAt); }
+    if (patch.startAt !== undefined) task.startAt = normalizeISO(patch.startAt);
     if (patch.reminderMinutes !== undefined) {
       const minutes = Number(patch.reminderMinutes);
       if (![5,10,30].includes(minutes)) throw new Error('提醒仅支持提前5、10或30分钟');
-      if (task.reminderMinutes !== minutes) task.notifiedAt = null;
       task.reminderMinutes = minutes; task.reminderAt = null;
     }
-    if (patch.reminderAt !== undefined) { task.reminderAt = normalizeISO(patch.reminderAt); task.notifiedAt = null; }
-    if (patch.reminderDisabled !== undefined) { task.reminderDisabled = patch.reminderDisabled === true; task.notifiedAt = null; }
-    if (patch.dueAt !== undefined) {
-      const next = normalizeISO(patch.dueAt);
-      // 截止时间变化后重置提醒标记，允许再次通知
-      if (next !== task.dueAt) task.notifiedAt = null;
-      task.dueAt = next;
-    }
+    if (patch.reminderAt !== undefined) task.reminderAt = normalizeISO(patch.reminderAt);
+    if (patch.reminderDisabled !== undefined) task.reminderDisabled = patch.reminderDisabled === true;
+    if (patch.dueAt !== undefined) task.dueAt = normalizeISO(patch.dueAt);
+    if (reminderTime(task) !== previousReminderTime) task.notifiedAt = null;
     if (patch.status !== undefined) {
       const status = normalizeStatus(patch.status);
       if (status !== task.status) {
@@ -536,14 +536,20 @@ function expandOccurrences(opts = {}) {
   return out;
 }
 
+function reminderTime(task) {
+  if (task.reminderDisabled) return null;
+  const minutes = [5, 10, 30].includes(task.reminderMinutes) ? task.reminderMinutes : null;
+  if (minutes === null && task.reminderAt) return Date.parse(task.reminderAt);
+  const anchor = task.startAt || task.dueAt;
+  return anchor ? Date.parse(anchor) - (minutes ?? 5) * 60_000 : null;
+}
+
 /** 到期未提醒的任务（供主进程通知调度使用）。 */
 function dueForReminder(tasks, now = Date.now()) {
   return tasks.filter((t) => {
-    const anchor = t.dueAt || t.startAt;
-    const reminder = [5,10,30].includes(t.reminderMinutes) ? (anchor ? new Date(new Date(anchor).getTime() - t.reminderMinutes * 60000).toISOString() : null) : t.reminderAt || anchor;
-    if (t.reminderDisabled || !reminder || t.status === 'done' || t.status === 'cancelled' || t.completedAt) return false;
-    if (t.notifiedAt) return false;
-    return new Date(reminder).getTime() <= now;
+    if (t.notifiedAt || t.status === 'done' || t.status === 'cancelled' || t.completedAt) return false;
+    const reminder = reminderTime(t);
+    return reminder !== null && reminder <= now;
   });
 }
 

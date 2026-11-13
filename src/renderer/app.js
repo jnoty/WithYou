@@ -54,6 +54,7 @@ const state = {
   editingId: null,
   stepsInputId: null, // 正在显示「添加子任务」输入框的任务 id
   expandedSteps: new Set(), // 已展开子任务列表的任务 id（默认折叠为进度）
+  collapsedTaskProjects: new Set(),
   settings: null,
   projectResources: [],
   resourceSearch: '',
@@ -145,7 +146,7 @@ function matchesFilters(task) {
   if (state.search) {
     const q = state.search.toLowerCase();
     const stepText = (task.steps || []).map((s) => s.content).join('\n');
-    const hay = (task.title + '\n' + (task.note || '') + '\n' + stepText).toLowerCase();
+    const hay = [task.title, task.project || tr('未分类'), task.note || '', stepText].join('\n').toLowerCase();
     if (!hay.includes(q)) return false;
   }
   if (state.colorFilter !== 'all') {
@@ -644,40 +645,42 @@ function renderProjectResources() {
     });
     for (const item of items) {
       const status = state.resourceStatus[item.id];
-      const remote = isRemoteLocation(item.location);
+      const locations = item.location.split(/\r\n?|\n/).map(line => line.trim()).filter(Boolean);
+      const multiple = locations.length > 1;
+      const remote = isRemoteLocation(locations[0]);
+      const openLocation = async (location) => {
+        const r = isRemoteLocation(location)
+          ? await api.projectResources.open(location)
+          : await api.projectResources.reveal(location);
+        if (!r.ok) showToast(i18n.error(r.error));
+      };
       const missing = status && status.exists === false;
       const card = document.createElement('article'); card.className = 'resource-card' + (missing ? ' missing' : '');
       const info = document.createElement('div'); info.className = 'resource-info';
       const name = document.createElement('strong'); name.textContent = item.name; info.appendChild(name);
-      const loc = document.createElement('div'); loc.className = 'resource-location'; loc.textContent = item.location; loc.title = item.location; info.appendChild(loc);
+      for (const location of locations) {
+        const loc = document.createElement('button');
+        loc.type = 'button';
+        loc.className = 'resource-location resource-location-button';
+        loc.textContent = loc.title = location;
+        loc.onclick = () => openLocation(location);
+        info.appendChild(loc);
+      }
       if (item.note) { const note = document.createElement('small'); note.className = 'resource-note'; note.textContent = item.note; info.appendChild(note); }
       if (missing) { const warn = document.createElement('span'); warn.className = 'resource-missing'; warn.textContent = tr('路径不存在或已移动'); info.appendChild(warn); }
       const actions = document.createElement('div'); actions.className = 'resource-actions';
       const commands = [];
       card.dataset.resourceId = item.id; card.tabIndex = 0; card.setAttribute('aria-label', item.name);
       const addAction = (label, handler) => {
-        const button = document.createElement('button');
-        button.className = 'ghost-btn'; button.textContent = tr(label);
-        button.setAttribute('aria-label', tr(label) + '：' + item.name);
-        button.type = 'button'; button.title = tr(label);
-        button.onclick = handler; commands.push({ label: tr(label), handler });
-        if (label === '删除') {
-          button.className = 'card-menu-btn resource-delete';
-          button.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 6h18M9 6V4h6v2M5 6l1 14h12l1-14M10 10v6M14 10v6"/></svg>';
-          actions.appendChild(button);
-        } else if (commands.length === 1) { button.classList.add('resource-open'); button.textContent = tr('打开'); actions.appendChild(button); }
-        return button;
+        commands.push({ label: tr(label), handler });
       };
-      addAction(remote ? '打开链接' : '在文件夹中显示', async () => {
-        const r = remote ? await api.projectResources.open(item.location) : await api.projectResources.reveal(item.location);
-        if (!r.ok) showToast(i18n.error(r.error));
-      });
-      addAction(remote ? '复制链接' : '复制路径', async () => {
+      if (!multiple) addAction(remote ? '打开链接' : '在文件夹中显示', () => openLocation(locations[0]));
+      addAction(multiple ? '复制全部地址' : (remote ? '复制链接' : '复制路径'), async () => {
         try { await navigator.clipboard.writeText(item.location); showToast(tr('已复制')); }
         catch (_) { showToast(tr('复制失败，请手动复制')); }
       });
       addAction('编辑', () => openResourceEditor(item));
-      addAction('删除', async () => {
+      const deleteResource = async () => {
         const r = await api.projectResources.delete(item.id);
         if (!r.ok) { showToast(i18n.error(r.error)); return; }
         const deleted = { ...item };
@@ -686,7 +689,16 @@ function renderProjectResources() {
           const restored = await api.projectResources.save(deleted);
           if (!restored.ok) showToast(i18n.error(restored.error)); else await loadProjectResources();
         } });
-      });
+      };
+      addAction('删除', deleteResource);
+      const deleteButton = document.createElement('button');
+      deleteButton.type = 'button';
+      deleteButton.className = 'card-menu-btn resource-delete';
+      deleteButton.setAttribute('aria-label', tr('删除') + '：' + item.name);
+      deleteButton.title = tr('删除');
+      deleteButton.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 6h18M9 6V4h6v2M5 6l1 14h12l1-14M10 10v6M14 10v6"/></svg>';
+      deleteButton.onclick = deleteResource;
+      actions.appendChild(deleteButton);
       card.addEventListener('contextmenu', e => { e.preventDefault(); showResourceMenu(e.clientX, e.clientY, commands, card); });
       card.addEventListener('keydown', e => {
         if (e.key === 'ContextMenu' || (e.shiftKey && e.key === 'F10')) {
@@ -748,6 +760,7 @@ async function loadProjectResources() {
   }
   try { state.projectResources = await api.projectResources.list(); }
   catch (_) { state.projectResources = []; }
+  syncTaskProjectOptions();
   renderProjectResources();
   // 路径检查可能涉及网络盘，先渲染列表，再异步补上“路径不存在”提示。
   if (typeof api.projectResources.check === 'function') {
@@ -865,6 +878,25 @@ const BOARD_FILTERS = {
   cancelled: { label: '已取消', statuses: ['cancelled'] },
 };
 
+function syncTaskProjectOptions() {
+  const projects = new Set([
+    ...state.tasks.map(task => task.project),
+    ...state.projectResources.map(resource => resource.project),
+  ].filter(Boolean));
+  const options = [...projects].sort((a, b) => a.localeCompare(b, i18n.language)).map(project => {
+    const option = document.createElement('option');
+    option.value = project;
+    return option;
+  });
+  $('#task-project-options').replaceChildren(...options);
+}
+
+function orderedBoardTasks(status) {
+  const tasks = state.tasks.filter(task => task.status === status && matchesFilters(task));
+  return status === 'done' ? sortDone(tasks)
+    : (status === 'cancelled' ? sortCancelled(tasks) : sortTasks(tasks));
+}
+
 function render() {
   updateViewSwitch();
   if (state.view === 'resources') { renderProjectResources(); return; }
@@ -874,13 +906,8 @@ function render() {
     return;
   }
 
-  // 与网页版一致：所有任务在同一个列表中，标签只切换列表内容，不再分栏。
   const filter = BOARD_FILTERS[state.statusFilter] || BOARD_FILTERS.all;
-  const ordered = filter.statuses.flatMap((status) => {
-    const tasks = state.tasks.filter((task) => task.status === status && matchesFilters(task));
-    return status === 'done' ? sortDone(tasks)
-      : (status === 'cancelled' ? sortCancelled(tasks) : sortTasks(tasks));
-  });
+  const ordered = filter.statuses.flatMap(orderedBoardTasks);
 
   $('#list-title').textContent = tr(filter.label);
   $('#list-count').textContent = String(ordered.length);
@@ -904,7 +931,39 @@ function render() {
     return;
   }
 
-  for (const task of ordered) listEl.appendChild(renderCard(task));
+  const groups = new Map();
+  for (const task of ordered) {
+    const project = task.project || '';
+    if (!groups.has(project)) groups.set(project, []);
+    groups.get(project).push(task);
+  }
+  const projects = [...groups.keys()].filter(Boolean).sort((a, b) => a.localeCompare(b, i18n.language));
+  if (groups.has('')) projects.push('');
+  for (const project of projects) {
+    const tasks = groups.get(project);
+    const section = document.createElement('details');
+    section.className = 'task-project';
+    section.open = Boolean(state.search) || !state.collapsedTaskProjects.has(project);
+    const heading = document.createElement('summary');
+    heading.className = 'task-project-heading';
+    const name = document.createElement('span');
+    name.className = 'task-project-label';
+    name.textContent = project || tr('未分类');
+    const count = document.createElement('span');
+    count.className = 'count';
+    count.textContent = String(tasks.length);
+    heading.append(name, count);
+    const cards = document.createElement('div');
+    cards.className = 'task-project-cards';
+    for (const task of tasks) cards.appendChild(renderCard(task));
+    section.append(heading, cards);
+    section.addEventListener('toggle', () => {
+      if (state.search || !section.isConnected) return;
+      if (section.open) state.collapsedTaskProjects.delete(project);
+      else state.collapsedTaskProjects.add(project);
+    });
+    listEl.appendChild(section);
+  }
 }
 
 /** 子任务折叠摘要：显示进度并可展开/收起完整清单。 */
@@ -934,15 +993,17 @@ function renderStepsSummary(task, expanded) {
 
   const chevron = document.createElement('span');
   chevron.className = 'steps-summary-chevron';
-  chevron.textContent = '⌄';
   chevron.setAttribute('aria-hidden', 'true');
 
   button.append(label, track, chevron);
   button.addEventListener('click', (e) => {
     e.stopPropagation();
-    if (state.expandedSteps.has(task.id)) state.expandedSteps.delete(task.id);
-    else state.expandedSteps.add(task.id);
+    if (expanded) {
+      state.expandedSteps.delete(task.id);
+      if (state.stepsInputId === task.id) state.stepsInputId = null;
+    } else state.expandedSteps.add(task.id);
     render();
+    $(`.card[data-id="${CSS.escape(task.id)}"] .card-steps-summary`)?.focus({ preventScroll: true });
   });
   return button;
 }
@@ -1105,13 +1166,6 @@ function renderCard(task) {
 
   card.appendChild(top);
 
-  if (task.sourceId) {
-    const sourceButton = document.createElement('button');
-    sourceButton.className = 'ghost-btn source-action'; sourceButton.textContent = tr('查看原文');
-    sourceButton.addEventListener('click', e => { e.stopPropagation(); window.dispatchEvent(new CustomEvent('withyou:ai-source', { detail: task.sourceId })); });
-    card.appendChild(sourceButton);
-  }
-
   if (task.note) {
     const note = document.createElement('div');
     note.className = 'card-note';
@@ -1184,7 +1238,15 @@ function renderCard(task) {
     cancelled.textContent = tr('取消于 ') + formatDue(task.cancelledAt);
     meta.appendChild(cancelled);
   }
-  if (meta.children.length) card.appendChild(meta);
+  if (task.sourceId) {
+    const sourceButton = document.createElement('button');
+    sourceButton.type = 'button';
+    sourceButton.className = 'ghost-btn source-action';
+    sourceButton.textContent = tr('查看原文');
+    sourceButton.addEventListener('click', e => { e.stopPropagation(); window.dispatchEvent(new CustomEvent('withyou:ai-source', { detail: task.sourceId })); });
+    meta.appendChild(sourceButton);
+  }
+  card.appendChild(meta);
 
   // 色条（逾期时红色优先）
   if (color && !isOverdue(task)) {
@@ -1210,6 +1272,15 @@ function renderEditForm(task) {
   titleInput.placeholder = tr('任务标题（必填）');
   titleInput.setAttribute('aria-label', tr('任务标题'));
   form.appendChild(titleInput);
+
+  const projectInput = document.createElement('input');
+  projectInput.type = 'text';
+  projectInput.maxLength = 100;
+  projectInput.setAttribute('list', 'task-project-options');
+  projectInput.setAttribute('aria-label', tr('所属项目（可选）'));
+  projectInput.placeholder = tr('所属项目（可选）');
+  projectInput.value = task.project || '';
+  form.appendChild(projectInput);
 
   const noteInput = document.createElement('textarea');
   noteInput.maxLength = 1000;
@@ -1401,6 +1472,7 @@ function renderEditForm(task) {
     }
     const patch = {
       title: t,
+      project: projectInput.value,
       note: noteInput.value,
       startAt: startVal,
       dueAt: dueVal,
@@ -1445,6 +1517,7 @@ function renderEditForm(task) {
 
 async function refresh() {
   state.tasks = await api.tasks.list();
+  syncTaskProjectOptions();
   render();
 }
 
@@ -1681,11 +1754,8 @@ async function handleDrop(e, targetTask) {
   if (!task) return;
 
   const targetStatus = targetTask.status;
-  // 统一列表中只收集与目标同状态的卡片；拖到不同状态卡片上仍会切换状态。
-  const ids = [...$('#list-all').querySelectorAll('.card')]
-    .filter((el) => el.dataset.status === targetStatus)
-    .map((el) => el.dataset.id)
-    .filter((taskId) => taskId !== id);
+  // 项目分组和折叠只影响展示；排序仍按原有状态顺序处理。
+  const ids = orderedBoardTasks(targetStatus).map(t => t.id).filter(taskId => taskId !== id);
   const at = ids.indexOf(targetTask.id);
   ids.splice(at === -1 ? ids.length : at, 0, id);
 
@@ -1848,6 +1918,7 @@ function syncColorFilterChips() {
 function setupAddTask() {
   const mask = $('#add-task-mask');
   const titleInput = $('#add-title');
+  const projectInput = $('#add-project');
   const noteInput = $('#add-note');
   const startInput = $('#add-start');
   const endInput = $('#add-end');
@@ -1946,6 +2017,7 @@ function setupAddTask() {
   };
   const clearForm = () => {
     titleInput.value = '';
+    projectInput.value = '';
     noteInput.value = '';
     startInput.value = '';
     endInput.value = '';
@@ -2054,6 +2126,7 @@ function setupAddTask() {
       if (freq) {
         const r = await api.tasks.createRecurring({
           title,
+          project: projectInput.value,
           note: noteInput.value,
           color,
           startAt,
@@ -2070,7 +2143,7 @@ function setupAddTask() {
         refresh();
         showToast(tr`已创建 ${r.count} 条重复任务`);
       } else {
-        await api.tasks.create({ title, note: noteInput.value, color, startAt, dueAt, reminderMinutes, status: 'todo' });
+        await api.tasks.create({ title, project: projectInput.value, note: noteInput.value, color, startAt, dueAt, reminderMinutes, status: 'todo' });
         closeAddTask();
         refresh();
       }
@@ -2379,6 +2452,7 @@ async function init() {
   // 主进程推送的数据变更（托盘新建 / 速记窗新建 / 通知后状态变化等）
   api.tasks.onChanged((tasks) => {
     state.tasks = tasks;
+    syncTaskProjectOptions();
     render();
   });
 

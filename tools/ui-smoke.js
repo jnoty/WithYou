@@ -97,6 +97,7 @@ app.whenReady().then(async () => {
     // Adding a subtask is only available from the context menu; successful save closes the input.
     assert.equal(await run(win, `document.querySelectorAll('.step-add-input, .step-add-btn').length`), 0);
     await run(win, `document.querySelector('.card-steps-summary')?.click()`);
+    assert.equal(await run(win, `document.querySelector('.card-steps-summary').getAttribute('aria-expanded')`), 'true');
     const stepTaskId = await run(win, `document.querySelector('.step').closest('.card').dataset.id`);
     const openStepInput = (id) => run(win, `(() => {
       document.querySelector('.card[data-id="${id}"]').dispatchEvent(new MouseEvent('contextmenu', { bubbles: true, cancelable: true, clientX: 100, clientY: 100 }));
@@ -329,8 +330,7 @@ app.whenReady().then(async () => {
     })()`);
     await waitFor(win, `document.querySelectorAll('.resource-card').length === 1`);
     assert.equal(await run(win, `document.querySelector('.resource-info strong').textContent`), '设计稿');
-    assert.equal(await run(win, `document.querySelectorAll('.resource-card')[0].querySelectorAll('.resource-actions button[aria-label^="在文件夹中显示"]').length`),1);
-    assert.equal(await run(win, `[...document.querySelectorAll('.resource-actions button')].some(b => b.textContent === '打开')`),true);
+    assert.equal(await run(win, `document.querySelector('.resource-card button.resource-location-button').textContent`), 'C:/work/design');
     assert.equal(await run(win, `document.querySelector('#resource-count').textContent.includes('1 个项目')`), true);
     await run(win, `(() => { const input = document.querySelector('#search-input'); input.value = '不存在'; input.dispatchEvent(new Event('input', { bubbles: true })); })()`);
     await waitFor(win, `document.querySelector('.resource-empty') && document.querySelector('.resource-empty').textContent.includes('没有匹配')`);
@@ -397,7 +397,7 @@ app.whenReady().then(async () => {
     await run(win, `document.querySelector('#resource-name').focus()`); await win.webContents.insertText('可修改');
     assert.equal(await run(win, `document.querySelector('#resource-name').value.includes('可修改')`), true);
     await run(win, `document.querySelector('#resource-cancel').click()`);
-    assert.equal(await run(win, `document.querySelector('.resource-actions').querySelectorAll('button').length`),2,'only locate/open and trash remain on the card');
+    assert.equal(await run(win, `document.querySelector('.resource-actions').querySelectorAll('button').length`), 1, 'the path is clickable and only the trash button remains in the action area');
     assert.equal(await run(win, `!!document.querySelector('.resource-delete svg')`),true);
     await run(win, `document.querySelector('.resource-card').focus(); document.querySelector('.resource-card').dispatchEvent(new KeyboardEvent('keydown',{key:'F10',shiftKey:true,bubbles:true}))`);
     assert.equal(await run(win, `!!document.querySelector('.resource-context-menu')`),true);
@@ -425,6 +425,38 @@ app.whenReady().then(async () => {
     await layout(win);
     await shot(win, 'filters-minimum');
     await run(win, `document.querySelector('#btn-toggle-filters').click()`);
+    await run(win, `document.querySelector('#view-switch [data-view="resources"]').click();
+      document.querySelector('.resource-project-add').click();
+      document.querySelector('#resource-name').value = '多份参考资料';
+      document.querySelector('#resource-location').value = 'https://example.com/a\\n\\nhttps://example.com/b';
+      document.querySelector('#resource-form').requestSubmit();`);
+    const multiResource = `[...document.querySelectorAll('.resource-card')].find(card => card.querySelector('strong').textContent === '多份参考资料')`;
+    await waitFor(win, `Boolean(${multiResource})`);
+    assert.deepEqual(await run(win, `[...${multiResource}.querySelectorAll('.resource-location-button')].map(b => b.textContent)`),
+      ['https://example.com/a', 'https://example.com/b']);
+    await shot(win, 'resources-multiple');
+    await run(win, `document.querySelector('#view-switch [data-view="board"]').click();
+      document.querySelector('#btn-add-task').click(); document.querySelector('#add-mode-manual').click();
+      document.querySelector('#add-title').value = '按项目归类';
+      document.querySelector('#add-project').value = '携手';
+      document.querySelector('#btn-create-task').click();`);
+    const projectLabel = `document.querySelector('.task-project-label')`;
+    await waitFor(win, `${projectLabel}.textContent === '携手'`);
+    assert.deepEqual(await run(win, `[...document.querySelectorAll('.task-project-label')].map(label => label.textContent)`), ['携手', '未分类']);
+    await run(win, `${projectLabel}.click()`);
+    await waitFor(win, `state.collapsedTaskProjects.has('携手')`);
+    await run(win, `render()`);
+    assert.equal(await run(win, `${projectLabel}.closest('details').open`), false);
+    const searchProject = value => run(win, `(() => { const input = document.querySelector('#search-input');
+      input.value = ${JSON.stringify(value)}; input.dispatchEvent(new Event('input')); })()`);
+    await searchProject('携手');
+    assert.equal(await run(win, `${projectLabel}.closest('details').open`), true);
+    await searchProject('');
+    await run(win, `${projectLabel}.click();
+      ${projectLabel}.closest('details').querySelector('.card-title').dispatchEvent(new MouseEvent('dblclick', { bubbles: true }));
+      document.querySelector('.edit-form [list="task-project-options"]').value = '';
+      document.querySelector('.edit-actions .primary-btn').click();`);
+    await waitFor(win, `${projectLabel}.textContent === '未分类'`);
     // Empty and all-cancelled datasets must display 0%, never NaN.
     await run(win, `(async () => { for (const t of await window.withyou.tasks.list()) await window.withyou.tasks.update(t.id, { status: 'cancelled' }); await refresh(); })()`);
     assert.equal(await run(win, `document.querySelector('#progress-value').textContent`), '0');

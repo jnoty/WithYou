@@ -123,6 +123,7 @@ contextBridge.exposeInMainWorld('withyou', {
           ? new Date(base.reminderAt).getTime() - new Date(anchor).getTime() : null;
         const created = store.createMany(plan.map((occ) => ({
           title: base.title,
+          project: base.project,
           note: base.note,
           status: 'todo',
           color: typeof base.color === 'string' ? base.color : '',

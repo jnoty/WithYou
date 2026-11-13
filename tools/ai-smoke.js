@@ -106,6 +106,12 @@ app.whenReady().then(async () => {
     assert.equal(store.tasks.length, 1); assert.equal(store.tasks[0].title, '提交新版首页设计稿');
     assert.equal(store.tasks[0].reminderMinutes,30);
     assert.match(store.tasks[0].note, /Reviewed detail/, 'collapsed fields retain edits when creating');
+    assert.equal(await run(`(() => {
+      const button = document.querySelector('.card .source-action');
+      const card = button.closest('.card');
+      const b = button.getBoundingClientRect(), c = card.getBoundingClientRect();
+      return c.right - b.right < 20 && c.bottom - b.bottom < 20;
+    })()`), true, 'View source sits at the bottom-right of its card');
     await run(`document.querySelector('#ai-close').click(); document.querySelector('.card .source-action').click()`);
     await wait(`!document.querySelector('#ai-source').hidden`);
     assert.equal(await run(`document.querySelector('#ai-source-text').textContent`), text);

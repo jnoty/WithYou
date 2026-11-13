@@ -86,6 +86,11 @@
   "未找到可创建的行动项，请补充内容或使用预览整理": "No actionable tasks found. Add details or use the preview.",
   "编辑原文 / 重新整理": "Edit source / generate again",
   "查看原文": "View source",
+  "未分类": "Uncategorized",
+  "所属项目（可选）": "Project (optional)",
+  "留空归入未分类": "Leave blank for Uncategorized",
+  "多个链接可每行填写一个": "Enter one link per line",
+  "复制全部地址": "Copy all addresses",
   "关闭": "Close",
   "粘贴工作内容或会议记录，编辑草稿后创建。仅本次输入会发送到你配置的模型服务。": "Paste work notes or meeting minutes, review the drafts, then create tasks. Only this input is sent to your configured model service.",
   "完整接口地址（含 /chat/completions）": "Full endpoint URL (including /chat/completions)",
@@ -259,7 +264,7 @@
   "显示桌宠": "Show pet",
   "隐藏桌宠": "Hide pet",
   "退出": "Quit",
-  "任务到期提醒": "Task due",
+  "任务提醒": "Task reminder",
   "{0} 等 {1} 项任务": "{0} and {1} tasks",
   "保存桌宠状态失败:": "Could not save pet state:",
   "喂食": "Feed",
@@ -472,7 +477,6 @@
     "安静模式": "Quiet mode",
     "关闭系统通知、气泡和居中动画": "Turn off system notifications, bubbles and central animation",
     "预览与动作库": "Preview and animation library",
-    "留空则按截止时间提醒；没有截止时间时按开始时间提醒": "Leave empty to remind at the due time, or at the start time when there is no due time.",
     "编辑项目资料": "Edit project resource",
     "添加第一条资料": "Add your first resource",
     "清除搜索": "Clear search",
@@ -508,7 +512,7 @@
   Object.assign(english, {"新建项目与资料":"New project and resource"});
   Object.assign(english, {"删除资料":"Delete resource"});
   Object.assign(english, {"重复任务需要填写开始时间或截止时间（作为每次任务的时间）":"Recurring tasks require a start or due time."});
-  Object.assign(english, {"提前5分钟":"5 minutes before", "提前10分钟":"10 minutes before", "提前30分钟":"30 minutes before", "提前{0}分钟":"{0} minutes before", "按截止时间提前提醒；没有截止时间时按开始时间，未设置时间时不提醒":"Remind before the due time, or start time if no due time is set. No reminder without a time."});
+  Object.assign(english, {"提前5分钟":"5 minutes before", "提前10分钟":"10 minutes before", "提前30分钟":"30 minutes before", "提前{0}分钟":"{0} minutes before", "优先在开始前提醒。仅填写截止时间时，在截止前提醒。":"Remind before the start time, or before the deadline if only a deadline is set."});
   Object.assign(english, {"整理选项":"Analysis options"});
   Object.assign(english, {"快速添加和所有 AI 整理统一使用此默认模型。":"Quick capture and all AI analysis use this default model."});
   Object.assign(english, {"任务原文":"Task source"});

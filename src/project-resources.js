@@ -38,7 +38,8 @@ class ProjectResourceStore {
   }
   sanitize(x) {
     if (!x || typeof x !== 'object') return null;
-    const project = text(x.project, 100), name = text(x.name, 150), location = text(x.location, 2000);
+    const project = text(x.project, 100), name = text(x.name, 150);
+    const location = text(x.location, 2000).split(/\r\n?|\n/).map(line => line.trim()).filter(Boolean).join('\n');
     if (!project || !name || !location) return null;
     const createdAt = typeof x.createdAt === 'string' && x.createdAt ? x.createdAt : new Date().toISOString();
     return { id: typeof x.id === 'string' && x.id ? x.id : id(), project, name, location,

@@ -349,6 +349,12 @@ body {
   flex-wrap: wrap;
 }
 
+.card-meta .source-action {
+  margin-left: auto;
+  font-size: 11px;
+  white-space: nowrap;
+}
+
 .badge {
   font-size: 11px;
   padding: 1px 8px;
@@ -368,30 +374,29 @@ body {
 
 /* ---------- 子任务 ---------- */
 .card-steps-summary {
-  display: flex;
+  display: inline-flex;
   align-items: center;
   gap: 8px;
-  margin: 6px 0 0 26px;
-  padding: 2px 4px 2px 0;
-  border: 0;
-  background: transparent;
+  margin: 8px 0 0 28px;
+  padding: 4px 9px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--panel);
   color: var(--text-dim);
   font: inherit;
   font-size: 11px;
   cursor: pointer;
-  width: calc(100% - 26px);
-  max-width: 340px;
+  max-width: calc(100% - 28px);
   text-align: left;
 }
 
-.card-steps-summary:hover { color: var(--text); }
-.card-steps-summary:focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; border-radius: 4px; }
+.card-steps-summary:hover, .card-steps-summary.expanded { color: var(--brand-deep); background: var(--mint); }
+.card-steps-summary:focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; }
 
 .steps-summary-label { flex: none; white-space: nowrap; }
 
 .steps-summary-track {
-  flex: 1;
-  min-width: 40px;
+  width: 44px;
   height: 4px;
   border-radius: 999px;
   background: var(--border);
@@ -408,11 +413,16 @@ body {
 
 .steps-summary-chevron {
   flex: none;
-  font-size: 12px;
+  width: 6px;
+  height: 6px;
+  margin: -3px 2px 0 0;
+  border: solid currentColor;
+  border-width: 0 1.5px 1.5px 0;
+  transform: rotate(45deg);
   transition: transform 160ms ease-out;
 }
 
-.card-steps-summary.expanded .steps-summary-chevron { transform: rotate(180deg); }
+.card-steps-summary.expanded .steps-summary-chevron { margin-top: 3px; transform: rotate(225deg); }
 
 .card-steps {
   margin: 6px 0 0 26px;
@@ -1189,15 +1199,15 @@ button.context-menu-item:disabled {
 .resource-info { min-width: 0; flex: 1; display: grid; gap: 4px; }
 .resource-info strong { font-size: 14px; }
 .resource-location { color: var(--text-dim); font-family: Consolas, monospace; font-size: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.resource-location-button { justify-self: start; min-width: 0; max-width: 100%; padding: 2px 0; border: 0; background: transparent; color: var(--brand-deep); text-align: left; text-decoration: underline; text-underline-offset: 3px; cursor: pointer; }
 .resource-info small, .resource-empty { color: var(--text-dim); }
 .resource-note { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
 .resource-empty { text-align: center; padding: 24px 0; }
 .resource-empty .ghost-btn { display: block; margin: 12px auto 0; }
 .resource-missing { color: #b42318; font-size: 12px; }
 .resource-actions { display: flex; gap: 5px; flex-wrap: wrap; justify-content: flex-end; }
-.resource-actions .ghost-btn { white-space: nowrap; }
-.resource-path-row { display: flex; gap: 7px; }
-.resource-path-row input { flex: 1; min-width: 0; }
+.resource-path-row { display: flex; align-items: flex-start; gap: 7px; }
+.resource-path-row textarea { flex: 1; min-width: 0; resize: vertical; }
 .resource-modal { display: grid; gap: 8px; }
 .resource-modal input, .resource-modal textarea { width: 100%; padding: 9px 10px; border: 1px solid var(--border); border-radius: 8px; font: inherit; }
 .resource-modal .modal-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 10px; }

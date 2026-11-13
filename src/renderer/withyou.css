@@ -60,6 +60,12 @@ body {
 .task-list-panel { height: 100%; min-height: 0; display: flex; flex-direction: column; overflow: hidden; border: 0; background: transparent; }
 .task-list-header { flex: none; }
 .task-list { flex: 1; min-height: 0; overflow-y: auto; }
+.task-project-heading { display: flex; align-items: center; gap: 8px; padding: 6px 4px; color: var(--text-dim); cursor: pointer; }
+.task-project-heading::before { content: ''; flex: none; width: 6px; height: 6px; margin-inline: 2px; border: solid currentColor; border-width: 0 1.5px 1.5px 0; transform: rotate(-45deg); }
+.task-project[open] > .task-project-heading::before { transform: rotate(45deg); }
+.task-project-label { padding: 3px 9px; border-radius: 999px; background: var(--mint); color: var(--brand-deep); font-size: 12px; font-weight: 600; overflow-wrap: anywhere; }
+.task-project-heading > .count { margin-left: 0; }
+.task-project-cards { display: grid; grid-template-columns: minmax(0, 1fr); gap: 8px; margin-top: 4px; }
 .task-list .card { border: 1px solid transparent; border-radius: 8px; padding: 12px 14px; background: color-mix(in oklch, var(--bg) 55%, var(--panel)); box-shadow: none; transition: transform 160ms ease-out, background-color 160ms ease-out, box-shadow 160ms ease-out, border-color 160ms ease-out; }
 .task-list .card:not(.dragging):not(:has(.edit-form)):hover { transform: translateX(3px); border-color: var(--border); background: var(--panel); box-shadow: 0 3px 10px color-mix(in oklch, var(--brand-deep) 7%, transparent); }
 .task-list .card.dragging { transform: none; }
@@ -209,7 +215,6 @@ button:disabled { opacity: .55; cursor: not-allowed; }
 .resource-location { font-size: 11px; }
 .resource-note { font-size: 11px; line-height: 1.7; }
 .resource-actions { flex-shrink: 0; align-items: center; gap: 12px; }
-.resource-open { font-size: 12px; }
 .resource-delete { display: grid; place-items: center; padding: 6px; opacity: .6; }
 .resource-delete:hover, .resource-delete:focus-visible { opacity: 1; color: var(--danger); }
 .resource-card.missing { border-color: color-mix(in srgb, var(--danger) 35%, transparent); }

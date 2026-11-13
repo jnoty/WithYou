@@ -97,4 +97,15 @@ ok('importItems: 重复和无效分别计数，磁盘失败整批回滚', () => 
   assert.equal(JSON.stringify(store.list()), before);
 });
 
+ok('multiline: 同名资料保留多个地址，兼容 Windows 换行和空行', () => {
+  const multiFile = path.join(dir, 'multi.json');
+  const store = new ProjectResourceStore(multiFile);
+  const input = { project: '项目', name: '参考资料', location: ' https://example.com/a \r\n\r\n  https://example.com/b ' };
+  const item = store.upsert(input);
+  const loaded = new ProjectResourceStore(multiFile);
+  assert.equal(loaded.list().length, 1);
+  assert.equal(loaded.list()[0].location, 'https://example.com/a\nhttps://example.com/b');
+  assert.deepEqual(loaded.importItems([{ ...input, location: item.location }]), { imported: 0, duplicates: 1, invalid: 0 });
+});
+
 console.log(`\n项目资料 ${passed} 项测试通过 ✓`);
