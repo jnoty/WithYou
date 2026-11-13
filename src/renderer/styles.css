@@ -279,7 +279,7 @@ body {
 
 .card.overdue {
   border-color: var(--danger);
-  background: #fef2f2;
+  background: var(--overdue-bg);
 }
 
 .card.overdue::before { background: var(--danger); }
@@ -340,6 +340,8 @@ body {
   overflow: hidden;
   user-select: text;
 }
+.card-note.expanded { display: block; overflow: visible; }
+.card-note-toggle { margin: 3px 0 0 28px; padding: 0; border: 0; background: transparent; color: var(--brand); font-size: 11px; cursor: pointer; }
 
 .card-meta {
   display: flex;

@@ -41,8 +41,13 @@ input.addEventListener('keydown', e => {
 button.addEventListener('click', create);
 document.getElementById('btn-manual').addEventListener('click', async () => {
   if (busy || !input.value.trim()) return;
+  const title = input.value.trim();
+  if (title.length > 1200) {
+    status.textContent = tr('普通创建最多保存 1200 字，请缩短内容或使用 AI 整理');
+    return;
+  }
   busy = true; input.disabled = true; button.disabled = true; document.getElementById('btn-manual').disabled = true;
-  try { await api.tasks.create({ title: input.value.trim(), status: 'todo' }); input.value = ''; try { window.localStorage?.removeItem('withyou-quick-input'); } catch (_) {} reset(); status.textContent = tr('已创建 {0} 个任务', 1); }
+  try { await api.tasks.create({ title: title.slice(0, 200), note: title.slice(200), status: 'todo' }); input.value = ''; try { window.localStorage?.removeItem('withyou-quick-input'); } catch (_) {} reset(); status.textContent = tr('已创建 {0} 个任务', 1); }
   catch (error) { status.textContent = error.message; }
   finally { busy = false; input.disabled = false; button.disabled = false; document.getElementById('btn-manual').disabled = false; input.focus(); }
 });

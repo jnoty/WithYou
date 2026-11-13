@@ -71,8 +71,8 @@ body {
 .task-list .card.dragging { transform: none; }
 .task-list .card.no-radius { border-radius: 4px; }
 .task-list { padding-right: 10px; }
-.task-list .card.overdue { border-color: color-mix(in srgb, var(--danger) 25%, transparent); border-left: 5px solid var(--danger); background: #fef2f2; }
-.task-list .card.overdue:not(.dragging):not(:has(.edit-form)):hover { background: #fef2f2; border-color: var(--danger); }
+.task-list .card.overdue { border-color: color-mix(in srgb, var(--danger) 25%, transparent); border-left: 5px solid var(--danger); background: var(--overdue-bg); }
+.task-list .card.overdue:not(.dragging):not(:has(.edit-form)):hover { background: var(--overdue-bg); border-color: var(--danger); }
 .card::before { display: none; }
 .card-title { font-size: 13px; font-weight: 650; line-height: 1.65; color: var(--brand-deep); }
 .check { width: 20px; height: 20px; border-radius: 50%; border-color: var(--brand); margin-top: 1px; }

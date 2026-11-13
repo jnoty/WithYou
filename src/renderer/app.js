@@ -54,13 +54,18 @@ const state = {
   editingId: null,
   stepsInputId: null, // 正在显示「添加子任务」输入框的任务 id
   expandedSteps: new Set(), // 已展开子任务列表的任务 id（默认折叠为进度）
-  collapsedTaskProjects: new Set(),
+  expandedTaskNotes: new Set(),
   settings: null,
   projectResources: [],
   resourceSearch: '',
   resourceStatus: {},
   editingResourceId: null,
 };
+const manualOrderStatuses = new Set();
+try {
+  const saved = JSON.parse(localStorage.getItem('withyou-manual-order-statuses') || '[]');
+  if (Array.isArray(saved)) for (const status of saved) if (typeof status === 'string') manualOrderStatuses.add(status);
+} catch (_) {}
 
 // ---------- 工具函数 ----------
 
@@ -202,6 +207,9 @@ function colorLabel(color) {
 
 /** 排序：逾期置顶 → 优先级（颜色，高→低）→ 截止近者在前 → sortOrder */
 function sortTasks(tasks) {
+  if (tasks.length && manualOrderStatuses.has(tasks[0].status)) {
+    return [...tasks].sort((a, b) => a.sortOrder - b.sortOrder);
+  }
   return [...tasks].sort((a, b) => {
     const ao = isOverdue(a) ? 0 : 1;
     const bo = isOverdue(b) ? 0 : 1;
@@ -242,6 +250,7 @@ function dateKey(d) {
 
 function tasksOnDay(key) {
   return state.tasks
+    .filter((task) => matchesFilters(task) && (BOARD_FILTERS[state.statusFilter] || BOARD_FILTERS.all).statuses.includes(task.status))
     .filter((t) => {
       const start = t.startAt || t.dueAt;
       const end = t.dueAt || t.startAt;
@@ -302,7 +311,18 @@ function renderChip(task) {
 }
 
 function openTaskInBoard(id, { addStep = false } = {}) {
+  const task = state.tasks.find(item => item.id === id);
+  if (!task) return;
   state.view = 'board';
+  state.statusFilter = 'all';
+  state.search = '';
+  state.dueFilter = 'all';
+  state.colorFilter = 'all';
+  $('#search-input').value = '';
+  syncFilterChips();
+  syncStatusFilterChips();
+  collapsedTaskProjects.delete(task.project || '');
+  saveTaskCollapse();
   state.editingId = addStep ? null : id;
   state.stepsInputId = addStep ? id : null;
   updateViewSwitch();
@@ -500,7 +520,7 @@ function renderUnscheduled() {
   const listEl = $('#unscheduled-list');
   listEl.innerHTML = '';
   const items = state.tasks
-    .filter((t) => !t.startAt && !t.dueAt && t.status !== 'done' && t.status !== 'cancelled')
+    .filter((t) => !t.startAt && !t.dueAt && t.status !== 'done' && t.status !== 'cancelled' && matchesFilters(t))
     .sort((a, b) => a.sortOrder - b.sortOrder);
   if (!items.length) {
     const empty = document.createElement('span');
@@ -589,8 +609,16 @@ try {
   const saved = JSON.parse(localStorage.getItem('withyou-resource-collapsed') || '[]');
   if (Array.isArray(saved)) for (const name of saved) if (typeof name === 'string') collapsedResourceProjects.add(name);
 } catch (_) {}
+const collapsedTaskProjects = new Set();
+try {
+  const saved = JSON.parse(localStorage.getItem('withyou-task-collapsed') || '[]');
+  if (Array.isArray(saved)) for (const name of saved) if (typeof name === 'string') collapsedTaskProjects.add(name);
+} catch (_) {}
 function saveResourceCollapse() {
   try { localStorage.setItem('withyou-resource-collapsed', JSON.stringify([...collapsedResourceProjects])); } catch (_) {}
+}
+function saveTaskCollapse() {
+  try { localStorage.setItem('withyou-task-collapsed', JSON.stringify([...collapsedTaskProjects])); } catch (_) {}
 }
 
 function renderProjectResources() {
@@ -713,16 +741,20 @@ function renderProjectResources() {
 
 let resourceSaving = false;
 let resourceReturnFocus = null;
+let resourceEditorDirty = false;
 
-function closeResourceEditor(force = false) {
+async function closeResourceEditor(force = false) {
   if (resourceSaving && force !== true) return;
+  if (!force && resourceEditorDirty && !await window.uiDialogs.confirm(tr('关闭将丢弃未保存的更改，是否继续？'))) return;
   $('#resource-mask').hidden = true;
+  resourceEditorDirty = false;
   resourceReturnFocus?.focus?.();
 }
 
 function openResourceEditor(item = null, project = '') {
   if (resourceSaving) return;
   state.editingResourceId = item ? item.id : null;
+  resourceEditorDirty = false;
   resourceReturnFocus = document.activeElement;
   $('#resource-form').reset();
   $('#resource-form-title').textContent = item ? tr('编辑项目资料') : project ? tr('添加资料') + ' · ' + project : tr('新建项目与资料');
@@ -779,8 +811,12 @@ function setupProjectResources() {
   $('#resource-add').onclick = () => openResourceEditor();
   $('#resource-cancel').onclick = closeResourceEditor;
   $('#resource-browse').onclick = async () => {
-    const p = await api.projectResources.choosePath($('#resource-location').value);
-    if (p) $('#resource-location').value = p;
+    const location = $('#resource-location');
+    const p = await api.projectResources.choosePath(location.value.split(/\r\n?|\n/)[0]);
+    if (p) {
+      location.value = [...new Set([...location.value.split(/\r\n?|\n/).map(value => value.trim()).filter(Boolean), p])].join('\n');
+      resourceEditorDirty = true;
+    }
   };
   $('#resource-form').onsubmit = async e => {
     e.preventDefault();
@@ -804,6 +840,8 @@ function setupProjectResources() {
     }
   };
   const mask = $('#resource-mask');
+  $('#resource-form').addEventListener('input', () => { resourceEditorDirty = true; });
+  $('#resource-form').addEventListener('change', () => { resourceEditorDirty = true; });
   mask.addEventListener('click', e => { if (e.target === mask) closeResourceEditor(); });
   mask.addEventListener('keydown', e => {
     if (e.key === 'Escape') { e.stopPropagation(); closeResourceEditor(); return; }
@@ -959,8 +997,9 @@ function render() {
     section.append(heading, cards);
     section.addEventListener('toggle', () => {
       if (state.search || !section.isConnected) return;
-      if (section.open) state.collapsedTaskProjects.delete(project);
-      else state.collapsedTaskProjects.add(project);
+      if (section.open) collapsedTaskProjects.delete(project);
+      else collapsedTaskProjects.add(project);
+      saveTaskCollapse();
     });
     listEl.appendChild(section);
   }
@@ -1168,9 +1207,23 @@ function renderCard(task) {
 
   if (task.note) {
     const note = document.createElement('div');
-    note.className = 'card-note';
+    const noteExpanded = state.expandedTaskNotes.has(task.id);
+    note.className = 'card-note' + (noteExpanded ? ' expanded' : '');
     note.textContent = task.note;
     card.appendChild(note);
+    if (task.note.length > 100) {
+      const toggleNote = document.createElement('button');
+      toggleNote.type = 'button';
+      toggleNote.className = 'card-note-toggle';
+      toggleNote.textContent = tr(noteExpanded ? '收起备注' : '展开备注');
+      toggleNote.onclick = event => {
+        event.stopPropagation();
+        if (noteExpanded) state.expandedTaskNotes.delete(task.id);
+        else state.expandedTaskNotes.add(task.id);
+        render();
+      };
+      card.appendChild(toggleNote);
+    }
   }
 
   if (task.status === 'cancelled' && task.cancelReason) {
@@ -1755,14 +1808,17 @@ async function handleDrop(e, targetTask) {
 
   const targetStatus = targetTask.status;
   // 项目分组和折叠只影响展示；排序仍按原有状态顺序处理。
+  if (task.status !== targetStatus || (task.project || '') !== (targetTask.project || '')) {
+    showToast(tr('请在同一项目、同一状态内拖动排序'));
+    return;
+  }
   const ids = orderedBoardTasks(targetStatus).map(t => t.id).filter(taskId => taskId !== id);
   const at = ids.indexOf(targetTask.id);
   ids.splice(at === -1 ? ids.length : at, 0, id);
 
-  if (task.status !== targetStatus) {
-    await api.tasks.update(id, { status: targetStatus });
-  }
   await api.tasks.reorder(targetStatus, ids);
+  manualOrderStatuses.add(targetStatus);
+  try { localStorage.setItem('withyou-manual-order-statuses', JSON.stringify([...manualOrderStatuses])); } catch (_) {}
   refresh();
 }
 
@@ -1982,8 +2038,8 @@ function setupAddTask() {
     aiDraft = null; $('#btn-ai-create-task').disabled = false; aiStatus('');
   });
   window.addEventListener('withyou:ai-config-saved', () => { aiDraft = null; aiConfigReady = aiCall('config').then(config => aiStatus(config.model ? tr('当前默认模型：') + config.model : tr('尚未配置模型，可前往设置或使用手动填写'))).catch(error => aiStatus(error.message, true)); });
-  $('#add-mode-ai').onclick = () => { aiModePicked = true; aiMode = true; syncAddMode(); aiText.focus(); };
-  $('#add-mode-manual').onclick = () => { aiModePicked = true; aiMode = false; syncAddMode(); titleInput.focus(); };
+  $('#add-mode-ai').onclick = () => { aiModePicked = true; aiMode = true; localStorage.setItem('withyou-add-mode', 'ai'); syncAddMode(); aiText.focus(); };
+  $('#add-mode-manual').onclick = () => { aiModePicked = true; aiMode = false; localStorage.setItem('withyou-add-mode', 'manual'); syncAddMode(); titleInput.focus(); };
   $('#btn-ai-create-task').onclick = createWithAI;
   window.addEventListener('withyou:ai-created', () => { aiDraft = null; aiText.value = ''; localStorage.removeItem('withyou-ai-input'); });
 
@@ -2045,7 +2101,7 @@ function setupAddTask() {
     if (aiBusy) return;
     clearForm();
     if (hasAI) loadAddDrafts().catch(error => aiStatus(error.message, true));
-    aiMode = hasAI;
+    aiMode = hasAI && localStorage.getItem('withyou-add-mode') !== 'manual';
     aiModePicked = false;
     if (hasAI) aiConfigReady = aiCall('config').then(config => {
       if (!config.model && !aiModePicked) {
@@ -2161,7 +2217,7 @@ function setupAddTask() {
       closeAddTask();
       return;
     }
-    if (e.key === 'Enter' && !e.shiftKey) {
+    if (e.key === 'Enter' && !e.shiftKey && !e.isComposing) {
       if (aiMode) {
         if (e.target === aiText && !(e.ctrlKey || e.metaKey)) return;
         if (e.ctrlKey || e.metaKey) { e.preventDefault(); createWithAI(); }
@@ -2204,6 +2260,7 @@ function setupCancelReasonModal() {
 // ---------- 设置 ----------
 
 function setupSettings() {
+  let quietModePreferences = null;
   const applyReading = s => { document.documentElement.dataset.theme = s.theme || 'system'; document.documentElement.style.zoom = Number(s.textSize) || 1; document.documentElement.classList.toggle('reduce-motion', !!s.reducedMotion); };
   api.settings.get().then(applyReading);
   api.app.onSettingsChanged?.((next) => {
@@ -2285,8 +2342,19 @@ function setupSettings() {
   });
   $('#set-quiet-mode').addEventListener('change', (e) => {
     const quiet = e.target.checked;
-    api.settings.set({ notifySystem: !quiet, petBubbles: !quiet, petCenterAnimation: !quiet })
+    if (quiet) {
+      quietModePreferences = {
+        notifySystem: state.settings.notifySystem !== false,
+        petBubbles: state.settings.petBubbles !== false,
+        petCenterAnimation: state.settings.petCenterAnimation !== false,
+      };
+    }
+    const patch = quiet
+      ? { notifySystem: false, petBubbles: false, petCenterAnimation: false }
+      : quietModePreferences || { notifySystem: true, petBubbles: true, petCenterAnimation: true };
+    api.settings.set(patch)
       .then((s) => { state.settings = s; syncSettingsUI(); });
+    if (!quiet) quietModePreferences = null;
   });
   $('#set-pet-snap').addEventListener('change', (e) => {
     api.settings.set({ petSnapToEdge: e.target.checked });

@@ -155,11 +155,12 @@
       const label = document.createElement('label'); label.className = 'ai-select';
       const check = document.createElement('input'); check.type = 'checkbox'; check.checked = task.selected ?? !task.suggested;
       check.setAttribute('aria-label', tr('选择此任务')); label.append(check); main.append(label); card.append(main, timeEditor);
-      for (const [key, caption, type, max] of [['title', '任务标题', 'text', 200], ['startAt', '开始时间', 'datetime-local'], ['dueAt', '截止时间', 'datetime-local'], ['reminderMinutes', '提醒时间', 'select'], ['note', '备注', 'textarea', 500], ['owner', '负责人', 'text', 100], ['dependency', '依赖', 'text', 200], ['steps', '子任务（每行一条，最多 50 条）', 'textarea', 10049], ['questions', '待确认事项', 'textarea', 200]]) {
+      for (const [key, caption, type, max] of [['title', '任务标题', 'text', 200], ['project', '所属项目（可选）', 'text', 100], ['startAt', '开始时间', 'datetime-local'], ['dueAt', '截止时间', 'datetime-local'], ['reminderMinutes', '提醒时间', 'select'], ['note', '备注', 'textarea', 500], ['owner', '负责人', 'text', 100], ['dependency', '依赖', 'text', 200], ['steps', '子任务（每行一条，最多 50 条）', 'textarea', 10049], ['questions', '待确认事项', 'textarea', 200]]) {
         const field = document.createElement('label'); if (key !== 'title') field.append(document.createTextNode(tr(caption)));
         const input = document.createElement(type === 'textarea' ? 'textarea' : type === 'select' ? 'select' : 'input'); if (!['textarea','select'].includes(type)) input.type = type;
         if (type === 'select') for (const minutes of [5,10,30]) { const option = document.createElement('option'); option.value = String(minutes); option.textContent = tr('提前{0}分钟', minutes); input.append(option); }
         input.dataset.field = key; if (max) input.maxLength = max;
+        if (key === 'project') input.setAttribute('list', 'task-project-options');
         input.value = key === 'steps' ? task.steps.join('\n') : (type === 'datetime-local' && task[key] ? new Date(new Date(task[key]).getTime() - new Date(task[key]).getTimezoneOffset() * 60000).toISOString().slice(0, 16) : (key === 'reminderMinutes' ? task[key] || 5 : task[key] || ''));
         input.setAttribute('aria-label', tr(caption));
         field.append(input);

@@ -309,7 +309,7 @@ class AIService {
       if (note.length > 1000) throw new Error('备注过长，请精简');
       const startAt = date(t.startAt), dueAt = date(t.dueAt);
       if (startAt && dueAt && startAt > dueAt) throw new Error('截止时间不能早于开始时间');
-      return { title: t.title.trim(), note, startAt, dueAt, reminderMinutes: [5,10,30].includes(Number(t.reminderMinutes)) ? Number(t.reminderMinutes) : 5, steps: (Array.isArray(t.steps) ? t.steps : []).map(s => ({ content: str(s, 200), status: 'todo' })) };
+      return { title: t.title.trim(), project: str(t.project, 100), note, startAt, dueAt, reminderMinutes: [5,10,30].includes(Number(t.reminderMinutes)) ? Number(t.reminderMinutes) : 5, steps: (Array.isArray(t.steps) ? t.steps : []).map(s => ({ content: str(s, 200), status: 'todo' })) };
     });
     const result = this.store.createAIBatch(inputs, source);
     source.result = null; this.saveDrafts();
